@@ -3,33 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Personal Assistant</title>
+<title>مساعدي الذكي - صوتي</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, sans-serif; }
   body {
     min-height:100vh;
     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    color:#fff;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    color:#fff; display:flex; justify-content:center; align-items:center;
     padding:20px;
-    overflow-x:hidden;
   }
-  /* ===== شاشة القفل ===== */
+  /* شاشة القفل */
   .lock-screen {
     position:fixed; inset:0;
     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    display:flex; flex-direction:column;
-    justify-content:center; align-items:center;
-    z-index:9999;
-    transition: opacity 0.6s, transform 0.6s;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    z-index:9999; transition:opacity 0.6s;
   }
-  .lock-screen.hidden { opacity:0; transform:scale(1.1); pointer-events:none; }
-  .lock-icon {
-    font-size:70px; margin-bottom:20px;
-    animation: pulse 2s infinite;
-  }
+  .lock-screen.hidden { opacity:0; pointer-events:none; }
+  .lock-icon { font-size:70px; margin-bottom:20px; animation:pulse 2s infinite; }
   @keyframes pulse {
     0%,100% { transform:scale(1); filter:drop-shadow(0 0 15px #7c3aed); }
     50% { transform:scale(1.1); filter:drop-shadow(0 0 30px #a855f7); }
@@ -40,154 +31,163 @@
     font-size:28px; letter-spacing:12px;
     background:rgba(255,255,255,0.08);
     border:2px solid rgba(168,85,247,0.4);
-    border-radius:16px; color:#fff; outline:none;
-    transition:0.3s;
+    border-radius:16px; color:#fff; outline:none; transition:0.3s;
   }
-  .pin-input:focus {
-    border-color:#a855f7;
-    box-shadow:0 0 25px rgba(168,85,247,0.6);
-  }
+  .pin-input:focus { border-color:#a855f7; box-shadow:0 0 25px rgba(168,85,247,0.6); }
   .unlock-btn {
     margin-top:20px; padding:14px 50px;
     background:linear-gradient(135deg,#7c3aed,#ec4899);
     border:none; border-radius:14px; color:#fff;
-    font-size:17px; cursor:pointer; transition:0.3s;
-    font-weight:600;
+    font-size:17px; cursor:pointer; font-weight:600;
   }
-  .unlock-btn:hover { transform:translateY(-3px); box-shadow:0 10px 30px rgba(236,72,153,0.5); }
   .error-msg { color:#f87171; margin-top:15px; font-size:14px; height:20px; }
-  .shake { animation: shake 0.4s; }
+  .shake { animation:shake 0.4s; }
   @keyframes shake {
     0%,100% { transform:translateX(0); }
     25% { transform:translateX(-12px); }
     75% { transform:translateX(12px); }
   }
 
-  /* ===== التطبيق الرئيسي ===== */
+  /* التطبيق */
   .app {
-    width:100%; max-width:1100px;
+    width:100%; max-width:800px;
     background:rgba(255,255,255,0.05);
     backdrop-filter:blur(20px);
     border-radius:24px;
     border:1px solid rgba(255,255,255,0.1);
     box-shadow:0 25px 60px rgba(0,0,0,0.5);
-    overflow:hidden;
-    display:none;
-    flex-direction:column;
-    height:88vh;
+    display:none; flex-direction:column;
+    height:90vh; overflow:hidden;
   }
   .app.show { display:flex; }
 
   .header {
-    padding:20px 28px;
+    padding:18px 24px;
     background:linear-gradient(90deg, rgba(124,58,237,0.3), rgba(236,72,153,0.2));
     border-bottom:1px solid rgba(255,255,255,0.1);
     display:flex; justify-content:space-between; align-items:center;
   }
-  .header h1 { font-size:20px; display:flex; align-items:center; gap:10px; }
-  .status { font-size:13px; color:#4ade80; display:flex; align-items:center; gap:6px; }
-  .dot { width:9px; height:9px; background:#4ade80; border-radius:50%; animation:blink 1.5s infinite; }
-  @keyframes blink { 50%{opacity:0.3;} }
-
-  .tabs {
-    display:flex; gap:8px; padding:15px 28px 0;
-    border-bottom:1px solid rgba(255,255,255,0.08);
+  .header h1 { font-size:19px; }
+  .header-btns { display:flex; gap:8px; }
+  .icon-btn {
+    background:rgba(255,255,255,0.1); border:none; color:#fff;
+    width:38px; height:38px; border-radius:50%;
+    cursor:pointer; font-size:16px; transition:0.3s;
   }
-  .tab {
-    padding:12px 22px; cursor:pointer;
-    background:transparent; border:none;
-    color:#a78bfa; font-size:15px; font-weight:600;
-    border-bottom:3px solid transparent;
-    transition:0.3s;
+  .icon-btn:hover { background:rgba(168,85,247,0.4); }
+
+  #status {
+    text-align:center; padding:10px;
+    font-size:13px; color:#4ade80;
+    background:rgba(74,222,128,0.08);
+    border-bottom:1px solid rgba(74,222,128,0.15);
   }
-  .tab.active { color:#fff; border-bottom-color:#a855f7; }
-  .tab:hover { color:#fff; }
 
-  .content { flex:1; overflow-y:auto; padding:25px 28px; display:none; }
-  .content.active { display:block; }
-  .content::-webkit-scrollbar { width:6px; }
-  .content::-webkit-scrollbar-thumb { background:#7c3aed; border-radius:3px; }
+  #chat-box {
+    flex:1; overflow-y:auto; padding:20px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  #chat-box::-webkit-scrollbar { width:6px; }
+  #chat-box::-webkit-scrollbar-thumb { background:#7c3aed; border-radius:3px; }
 
-  /* ===== صفحة البحث ===== */
-  .search-box { display:flex; gap:10px; margin-bottom:20px; }
-  .search-box input {
-    flex:1; padding:15px 20px; font-size:16px;
+  .message {
+    max-width:85%; padding:12px 16px;
+    border-radius:16px; line-height:1.6;
+    font-size:14.5px; animation:slideIn 0.3s ease;
+    word-wrap:break-word;
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform:translateY(10px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  .message.user {
+    align-self:flex-start;
+    background:linear-gradient(135deg,#7c3aed,#6d28d9);
+    border-bottom-left-radius:4px;
+  }
+  .message.ai {
+    align-self:flex-end;
     background:rgba(255,255,255,0.08);
-    border:1px solid rgba(168,85,247,0.3);
-    border-radius:14px; color:#fff; outline:none;
-    transition:0.3s;
+    border:1px solid rgba(168,85,247,0.2);
+    border-bottom-right-radius:4px;
   }
-  .search-box input:focus { border-color:#a855f7; box-shadow:0 0 20px rgba(168,85,247,0.4); }
-  .btn-primary {
-    padding:15px 28px; border:none; border-radius:14px;
+  .message .role {
+    font-size:11px; opacity:0.6; margin-bottom:4px;
+    font-weight:600;
+  }
+
+  .controls {
+    padding:18px 24px;
+    border-top:1px solid rgba(255,255,255,0.08);
+    display:flex; gap:10px; justify-content:center; align-items:center;
+    background:rgba(0,0,0,0.2);
+  }
+  .mic-btn {
+    width:70px; height:70px; border-radius:50%;
     background:linear-gradient(135deg,#7c3aed,#ec4899);
-    color:#fff; font-size:15px; cursor:pointer; font-weight:600;
-    transition:0.3s;
+    border:none; color:#fff; font-size:28px;
+    cursor:pointer; transition:0.3s;
+    box-shadow:0 8px 25px rgba(236,72,153,0.4);
   }
-  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(236,72,153,0.5); }
+  .mic-btn:hover:not(:disabled) { transform:scale(1.08); }
+  .mic-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .mic-btn.listening {
+    animation:listening 1.2s infinite;
+    background:linear-gradient(135deg,#ef4444,#ec4899);
+  }
+  @keyframes listening {
+    0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,0.7); }
+    50% { box-shadow:0 0 0 20px rgba(239,68,68,0); }
+  }
 
-  .result-card {
-    background:rgba(255,255,255,0.06);
-    border:1px solid rgba(255,255,255,0.1);
-    border-right:4px solid #a855f7;
-    padding:18px 20px; border-radius:14px; margin-bottom:12px;
-    transition:0.3s;
+  /* الإعدادات */
+  .settings-panel {
+    position:fixed; inset:0; background:rgba(0,0,0,0.8);
+    display:none; justify-content:center; align-items:center;
+    z-index:1000; padding:20px;
   }
-  .result-card:hover {
-    background:rgba(255,255,255,0.1);
-    transform:translateX(-5px);
+  .settings-panel.show { display:flex; }
+  .settings-box {
+    background:#1e1b4b; padding:30px; border-radius:20px;
+    width:100%; max-width:450px;
+    border:1px solid rgba(168,85,247,0.3);
   }
-  .result-card .question { color:#c4b5fd; font-weight:600; margin-bottom:8px; font-size:15px; }
-  .result-card .answer { color:#e5e7eb; line-height:1.7; font-size:15px; }
-  .empty-state { text-align:center; color:#9ca3af; padding:50px 20px; font-size:15px; }
-
-  /* ===== صفحة التخزين ===== */
-  .form-group { margin-bottom:18px; }
-  .form-group label { display:block; margin-bottom:8px; color:#c4b5fd; font-size:14px; font-weight:600; }
-  .form-group input, .form-group textarea {
-    width:100%; padding:14px 18px;
+  .settings-box h3 { color:#c4b5fd; margin-bottom:20px; }
+  .settings-box label {
+    display:block; margin-bottom:8px; color:#c4b5fd;
+    font-size:14px; margin-top:15px;
+  }
+  .settings-box input {
+    width:100%; padding:12px 16px;
     background:rgba(255,255,255,0.08);
     border:1px solid rgba(168,85,247,0.3);
-    border-radius:12px; color:#fff; outline:none;
-    font-size:15px; font-family:inherit; transition:0.3s;
+    border-radius:10px; color:#fff; outline:none;
+    font-size:14px;
   }
-  .form-group input:focus, .form-group textarea:focus {
-    border-color:#a855f7; box-shadow:0 0 20px rgba(168,85,247,0.4);
+  .settings-box input:focus { border-color:#a855f7; }
+  .settings-box small { color:#9ca3af; font-size:12px; display:block; margin-top:6px; }
+  .settings-actions { display:flex; gap:10px; margin-top:20px; }
+  .settings-actions button {
+    flex:1; padding:12px; border:none; border-radius:10px;
+    cursor:pointer; font-weight:600; font-size:14px;
   }
-  .form-group textarea { resize:vertical; min-height:100px; }
-  .memory-item {
-    background:rgba(255,255,255,0.06);
-    border:1px solid rgba(255,255,255,0.1);
-    padding:15px 18px; border-radius:12px; margin-bottom:10px;
-    display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
-  }
-  .memory-item .info { flex:1; }
-  .memory-item .q { color:#c4b5fd; font-weight:600; font-size:14px; margin-bottom:5px; }
-  .memory-item .a { color:#e5e7eb; font-size:14px; line-height:1.6; }
-  .delete-btn {
-    background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4);
-    color:#f87171; padding:8px 14px; border-radius:10px;
-    cursor:pointer; font-size:13px; transition:0.3s;
-    flex-shrink:0;
-  }
-  .delete-btn:hover { background:rgba(239,68,68,0.4); }
+  .btn-save { background:linear-gradient(135deg,#7c3aed,#ec4899); color:#fff; }
+  .btn-close { background:rgba(255,255,255,0.1); color:#fff; }
 
   .toast {
     position:fixed; bottom:30px; left:50%;
     transform:translateX(-50%) translateY(100px);
     background:linear-gradient(135deg,#7c3aed,#ec4899);
-    padding:14px 30px; border-radius:14px;
+    padding:12px 28px; border-radius:14px;
     color:#fff; font-weight:600; z-index:10000;
-    transition:0.4s; opacity:0;
+    transition:0.4s; opacity:0; font-size:14px;
   }
   .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 
   @media (max-width:600px) {
-    .app { height:95vh; border-radius:18px; }
-    .header h1 { font-size:16px; }
-    .tab { padding:10px 14px; font-size:13px; }
-    .content { padding:18px; }
-    .search-box { flex-direction:column; }
+    .app { height:95vh; border-radius:16px; }
+    .header h1 { font-size:15px; }
+    .message { font-size:13.5px; }
   }
 </style>
 </head>
@@ -196,7 +196,7 @@
 <!-- شاشة القفل -->
 <div class="lock-screen" id="lockScreen">
   <div class="lock-icon">🔒</div>
-  <h2>أدخل الرقم السري للمتابعة</h2>
+  <h2>أدخل الرقم السري</h2>
   <input type="password" class="pin-input" id="pinInput" maxlength="5" placeholder="•••••" inputmode="numeric">
   <button class="unlock-btn" onclick="unlock()">دخول</button>
   <div class="error-msg" id="errorMsg"></div>
@@ -206,38 +206,37 @@
 <div class="app" id="app">
   <div class="header">
     <h1>🤖 مساعدي الذكي</h1>
-    <div class="status"><span class="dot"></span> متصل</div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('search', this)">🔍 البحث</button>
-    <button class="tab" onclick="switchTab('memory', this)">💾 التخزين</button>
-  </div>
-
-  <!-- صفحة البحث -->
-  <div class="content active" id="searchPage">
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="اسأل عن أي معلومة خزنتها..." onkeypress="if(event.key==='Enter') doSearch()">
-      <button class="btn-primary" onclick="doSearch()">بحث</button>
-    </div>
-    <div id="searchResults">
-      <div class="empty-state">💡 ابدأ بالبحث عن أي معلومة قمت بتخزينها</div>
+    <div class="header-btns">
+      <button class="icon-btn" onclick="clearChat()" title="مسح المحادثة">🗑️</button>
+      <button class="icon-btn" onclick="openSettings()" title="الإعدادات">⚙️</button>
     </div>
   </div>
 
-  <!-- صفحة التخزين -->
-  <div class="content" id="memoryPage">
-    <div class="form-group">
-      <label>السؤال / المعلومة</label>
-      <input type="text" id="qInput" placeholder="مثال: ما هو رقم حسابي البنكي؟">
+  <div id="status">اضغط على الميكروفون وابدأ الكلام</div>
+
+  <div id="chat-box"></div>
+
+  <div class="controls">
+    <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎤</button>
+  </div>
+</div>
+
+<!-- إعدادات -->
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-box">
+    <h3>⚙️ الإعدادات</h3>
+    <label>مفتاح Gemini API:</label>
+    <input type="password" id="apiKeyInput" placeholder="الصق مفتاحك هنا...">
+    <small>احصل عليه من aistudio.google.com/apikey</small>
+
+    <label>Firebase Config (اختياري - JSON):</label>
+    <input type="text" id="firebaseInput" placeholder='{"apiKey":"...","projectId":"..."}'>
+    <small>لو ضبطتها، محادثاتك هتتحفظ سحابياً</small>
+
+    <div class="settings-actions">
+      <button class="btn-save" onclick="saveSettings()">💾 حفظ</button>
+      <button class="btn-close" onclick="closeSettings()">إغلاق</button>
     </div>
-    <div class="form-group">
-      <label>الإجابة / التفاصيل</label>
-      <textarea id="aInput" placeholder="اكتب الإجابة أو التفاصيل هنا..."></textarea>
-    </div>
-    <button class="btn-primary" onclick="saveMemory()" style="width:100%;margin-bottom:25px;">💾 حفظ في الذاكرة</button>
-    <h3 style="color:#c4b5fd;margin-bottom:15px;font-size:16px;">📚 المعلومات المخزنة</h3>
-    <div id="memoryList"></div>
   </div>
 </div>
 
@@ -247,204 +246,246 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<script>
-/* ========== إعداداتك ========== */
+<!-- Google GenAI -->
+<script type="importmap">
+{ "imports": { "@google/genai": "https://esm.run/@google/genai" } }
+</script>
+
+<script type="module">
+import { GoogleGenAI } from '@google/genai';
+
 const SECRET_PIN = "77777";
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-/* ============================== */
+const chatBox = document.getElementById('chat-box');
+const statusDiv = document.getElementById('status');
+const micBtn = document.getElementById('micBtn');
 
+let ai = null;
+let isListening = false;
+let chatHistory = JSON.parse(localStorage.getItem('chat_history') || '[]');
 let db = null;
-let firebaseReady = false;
-let localMemories = []; // نسخة احتياطية لو Firebase مش متظبط
-
-// ===== تهيئة Firebase =====
-try {
-  if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    firebaseReady = true;
-    console.log("✅ Firebase متصل");
-  } else {
-    console.warn("⚠️ Firebase مش متظبط - هيستخدم التخزين المحلي");
-  }
-} catch(e) {
-  console.warn("⚠️ خطأ في Firebase:", e.message);
-}
-
-// تحميل من التخزين المحلي كاحتياطي
-const saved = localStorage.getItem('ai_memories');
-if (saved) localMemories = JSON.parse(saved);
 
 /* ========== شاشة القفل ========== */
 let attempts = 0;
-function unlock() {
+window.unlock = function() {
   const input = document.getElementById('pinInput');
   const err = document.getElementById('errorMsg');
   if (input.value === SECRET_PIN) {
     document.getElementById('lockScreen').classList.add('hidden');
     document.getElementById('app').classList.add('show');
-    loadMemories();
+    initApp();
   } else {
     attempts++;
-    err.textContent = `❌ رقم سري خاطئ (محاولة ${attempts})`;
+    err.textContent = `❌ رقم خاطئ (${attempts})`;
     input.classList.add('shake');
     setTimeout(() => input.classList.remove('shake'), 400);
     input.value = '';
     if (attempts >= 3) {
-      err.textContent = "🔒 تم إغلاق الصفحة مؤقتاً...";
       input.disabled = true;
-      setTimeout(() => {
-        input.disabled = false;
-        attempts = 0;
-        err.textContent = "";
-      }, 5000);
+      err.textContent = "🔒 انتظر 5 ثواني...";
+      setTimeout(() => { input.disabled = false; attempts = 0; err.textContent=''; }, 5000);
     }
   }
-}
+};
 document.getElementById('pinInput').addEventListener('keypress', e => {
-  if (e.key === 'Enter') unlock();
+  if (e.key === 'Enter') window.unlock();
 });
 
-/* ========== التبويبات ========== */
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(name + 'Page').classList.add('active');
-  if (name === 'memory') loadMemories();
-}
+/* ========== التهيئة ========== */
+function initApp() {
+  // تحميل المحادثة السابقة
+  chatHistory.forEach(msg => renderMessage(msg.role, msg.text));
 
-/* ========== حفظ الذاكرة ========== */
-async function saveMemory() {
-  const q = document.getElementById('qInput').value.trim();
-  const a = document.getElementById('aInput').value.trim();
-  if (!q || !a) { showToast('⚠️ املأ السؤال والإجابة'); return; }
+  // تحميل المفتاح
+  const savedKey = localStorage.getItem('gemini_api_key');
+  if (savedKey) {
+    ai = new GoogleGenAI({ apiKey: savedKey });
+    setStatus('✅ جاهز! اضغط الميكروفون');
+  } else {
+    setStatus('⚠️ افتح ⚙️ وأدخل مفتاح API');
+    openSettings();
+  }
 
-  const item = { question: q, answer: a, createdAt: Date.now() };
-
-  if (firebaseReady && db) {
+  // Firebase
+  const fbConfig = localStorage.getItem('firebase_config');
+  if (fbConfig) {
     try {
-      await db.collection('memories').add(item);
-      showToast('✅ تم الحفظ في السحابة');
-    } catch(e) {
-      showToast('⚠️ خطأ Firebase - تم الحفظ محلياً');
-      localMemories.push(item);
-      localStorage.setItem('ai_memories', JSON.stringify(localMemories));
-    }
-  } else {
-    localMemories.push(item);
-    localStorage.setItem('ai_memories', JSON.stringify(localMemories));
-    showToast('✅ تم الحفظ في الذاكرة المحلية');
+      const cfg = JSON.parse(fbConfig);
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+      db = firebase.firestore();
+      console.log('✅ Firebase متصل');
+    } catch(e) { console.warn('Firebase:', e.message); }
   }
-
-  document.getElementById('qInput').value = '';
-  document.getElementById('aInput').value = '';
-  loadMemories();
 }
 
-/* ========== تحميل الذاكرة ========== */
-async function loadMemories() {
-  const list = document.getElementById('memoryList');
-  list.innerHTML = '<div class="empty-state">جاري التحميل...</div>';
-  let items = [];
+/* ========== الإعدادات ========== */
+window.openSettings = function() {
+  document.getElementById('apiKeyInput').value = localStorage.getItem('gemini_api_key') || '';
+  document.getElementById('firebaseInput').value = localStorage.getItem('firebase_config') || '';
+  document.getElementById('settingsPanel').classList.add('show');
+};
+window.closeSettings = function() {
+  document.getElementById('settingsPanel').classList.remove('show');
+};
+window.saveSettings = function() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  const fb = document.getElementById('firebaseInput').value.trim();
 
-  if (firebaseReady && db) {
+  if (key) {
+    localStorage.setItem('gemini_api_key', key);
+    ai = new GoogleGenAI({ apiKey: key });
+    setStatus('✅ جاهز! اضغط الميكروفون');
+  }
+  if (fb) {
     try {
-      const snap = await db.collection('memories').orderBy('createdAt', 'desc').get();
-      snap.forEach(doc => items.push({ id: doc.id, ...doc.data(), _source: 'cloud' }));
-    } catch(e) {
-      items = localMemories.map((m,i) => ({ ...m, id: 'local_'+i, _source: 'local' }));
+      JSON.parse(fb);
+      localStorage.setItem('firebase_config', fb);
+    } catch(e) { showToast('⚠️ JSON غير صالح'); return; }
+  }
+  showToast('✅ تم الحفظ');
+  closeSettings();
+};
+
+/* ========== المايك ========== */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ar-EG';
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  recognition.onstart = () => {
+    isListening = true;
+    micBtn.classList.add('listening');
+    setStatus('🎤 جاري الاستماع...');
+  };
+  recognition.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    handleUserInput(text);
+  };
+  recognition.onerror = (e) => {
+    setStatus('❌ خطأ: ' + e.error);
+    isListening = false;
+    micBtn.classList.remove('listening');
+  };
+  recognition.onend = () => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+  };
+}
+
+window.toggleMic = function() {
+  if (!ai) { showToast('⚠️ أدخل مفتاح API أولاً'); openSettings(); return; }
+  if (!recognition) { showToast('❌ المتصفح لا يدعم الصوت'); return; }
+
+  if (isListening) {
+    recognition.stop();
+  } else {
+    // إيقاف أي نطق سابق
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    recognition.start();
+  }
+};
+
+/* ========== معالجة الإدخال ========== */
+async function handleUserInput(text) {
+  renderMessage('user', text);
+  chatHistory.push({ role:'user', text });
+  saveHistory();
+  setStatus('🤔 جاري التفكير...');
+
+  try {
+    // 1. البحث في ذاكرة Firebase أولاً (لو متصلة)
+    let personalContext = '';
+    if (db) {
+      const keywords = text.split(/\s+/).filter(w => w.length > 2);
+      try {
+        const snap = await db.collection('memories').limit(20).get();
+        const matches = [];
+        snap.forEach(doc => {
+          const d = doc.data();
+          const full = ((d.question||'') + ' ' + (d.answer||'')).toLowerCase();
+          if (keywords.some(k => full.includes(k.toLowerCase()))) {
+            matches.push(`س: ${d.question} — ج: ${d.answer}`);
+          }
+        });
+        if (matches.length) personalContext = `\n\nمعلومات من ذاكرتك الشخصية:\n${matches.join('\n')}`;
+      } catch(e) { console.warn('بحث Firebase فشل:', e.message); }
     }
-  } else {
-    items = localMemories.map((m,i) => ({ ...m, id: 'local_'+i, _source: 'local' }));
+
+    // 2. بناء الـ prompt
+    const historyText = chatHistory.slice(-6, -1)
+      .map(h => `${h.role === 'user' ? 'المستخدم' : 'المساعد'}: ${h.text}`)
+      .join('\n');
+
+    const prompt = `أنت مساعد شخصي ذكي باللغة العربية. 
+- أجب بإيجاز ووضوح.
+- لو تحتاج معلومة حديثة استخدم البحث.
+- لو عندك معلومات شخصية عن المستخدم استخدمها.${personalContext}
+
+${historyText ? 'سياق المحادثة:\n' + historyText + '\n' : ''}
+المستخدم: ${text}`;
+
+    // 3. استدعاء Gemini مع البحث
+    const model = ai.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      tools: [{ googleSearch: {} }]
+    });
+
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+
+    renderMessage('ai', response);
+    chatHistory.push({ role:'ai', text:response });
+    saveHistory();
+    speak(response);
+
+  } catch (err) {
+    console.error(err);
+    const msg = '❌ خطأ: ' + (err.message || 'حاول تاني');
+    setStatus(msg);
+    showToast(msg);
   }
-
-  window._allMemories = items;
-
-  if (items.length === 0) {
-    list.innerHTML = '<div class="empty-state">📭 لا توجد معلومات مخزنة بعد</div>';
-    return;
-  }
-
-  list.innerHTML = items.map(item => `
-    <div class="memory-item">
-      <div class="info">
-        <div class="q">❓ ${escapeHtml(item.question)}</div>
-        <div class="a">💡 ${escapeHtml(item.answer)}</div>
-      </div>
-      <button class="delete-btn" onclick="deleteMemory('${item.id}', '${item._source}')">🗑️</button>
-    </div>
-  `).join('');
 }
 
-/* ========== البحث الذكي ========== */
-function doSearch() {
-  const query = document.getElementById('searchInput').value.trim().toLowerCase();
-  const results = document.getElementById('searchResults');
-
-  if (!query) {
-    results.innerHTML = '<div class="empty-state">✍️ اكتب كلمة للبحث</div>';
-    return;
-  }
-
-  const items = window._allMemories || [];
-  if (items.length === 0) {
-    results.innerHTML = '<div class="empty-state">📭 لا توجد معلومات مخزنة بعد. أضف معلومات أولاً من تبويب التخزين</div>';
-    return;
-  }
-
-  // بحث بسيط ذكي - يطابق الكلمات في السؤال والإجابة
-  const keywords = query.split(/\s+/).filter(k => k.length > 0);
-  const matches = items.filter(item => {
-    const text = (item.question + ' ' + item.answer).toLowerCase();
-    return keywords.some(k => text.includes(k));
-  });
-
-  if (matches.length === 0) {
-    results.innerHTML = `<div class="empty-state">🔍 لا نتائج لـ "${escapeHtml(query)}"<br><small style="color:#6b7280">جرب كلمات أخرى</small></div>`;
-    return;
-  }
-
-  // ترتيب حسب درجة المطابقة
-  matches.sort((a, b) => {
-    const scoreA = keywords.filter(k => (a.question + ' ' + a.answer).toLowerCase().includes(k)).length;
-    const scoreB = keywords.filter(k => (b.question + ' ' + b.answer).toLowerCase().includes(k)).length;
-    return scoreB - scoreA;
-  });
-
-  results.innerHTML = `<div style="color:#a78bfa;margin-bottom:15px;font-size:14px;">🔎 وجدت ${matches.length} نتيجة</div>` +
-    matches.map(item => `
-      <div class="result-card">
-        <div class="question">❓ ${escapeHtml(item.question)}</div>
-        <div class="answer">💡 ${escapeHtml(item.answer)}</div>
-      </div>
-    `).join('');
+/* ========== النطق ========== */
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ar-SA';
+  utt.rate = 1;
+  utt.pitch = 1;
+  utt.onstart = () => setStatus('🔊 جاري الرد...');
+  utt.onend = () => setStatus('✅ جاهز');
+  window.speechSynthesis.speak(utt);
 }
 
-/* ========== حذف ========== */
-async function deleteMemory(id, source) {
-  if (!confirm('هل أنت متأكد من حذف هذه المعلومة؟')) return;
-
-  if (source === 'cloud' && firebaseReady && db) {
-    try { await db.collection('memories').doc(id).delete(); }
-    catch(e) { showToast('⚠️ خطأ في الحذف'); return; }
-  } else {
-    const idx = parseInt(id.split('_')[1]);
-    localMemories.splice(idx, 1);
-    localStorage.setItem('ai_memories', JSON.stringify(localMemories));
-  }
-  showToast('🗑️ تم الحذف');
-  loadMemories();
+/* ========== الواجهة ========== */
+function renderMessage(role, text) {
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  div.innerHTML = `<div class="role">${role === 'user' ? '🧑 أنت' : '🤖 المساعد'}</div>${escapeHtml(text)}`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-/* ========== أدوات مساعدة ========== */
+function saveHistory() {
+  if (chatHistory.length > 100) chatHistory = chatHistory.slice(-100);
+  localStorage.setItem('chat_history', JSON.stringify(chatHistory));
+}
+
+window.clearChat = function() {
+  if (!confirm('مسح المحادثة كلها؟')) return;
+  chatHistory = [];
+  localStorage.removeItem('chat_history');
+  chatBox.innerHTML = '';
+  showToast('🗑️ تم المسح');
+};
+
+function setStatus(txt) { statusDiv.textContent = txt; }
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, s => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
