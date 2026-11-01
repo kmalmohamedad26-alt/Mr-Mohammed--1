@@ -21,7 +21,7 @@
   .shake { animation:shake 0.4s; }
   @keyframes shake { 0%,100% { transform:translateX(0); } 25% { transform:translateX(-10px); } 75% { transform:translateX(10px); } }
 
-  .app { width:100%; max-width:900px; background:rgba(20, 15, 35, 0.85); backdrop-filter:blur(25px); border-radius:20px; border:1px solid rgba(139,92,246,0.2); box-shadow:0 25px 60px rgba(0,0,0,0.6), inset 0 0 30px rgba(139,92,246,0.05); display:none; flex-direction:column; height:92vh; overflow:hidden; position:relative; }
+  .app { width:100%; max-width:900px; background:rgba(20, 15, 35, 0.85); backdrop-filter:blur(25px); border-radius:20px; border:1px solid rgba(139,92,246,0.2); box-shadow:0 25px 60px rgba(0,0,0,0.6); display:none; flex-direction:column; height:92vh; overflow:hidden; position:relative; }
   .app.show { display:flex; }
 
   .header { padding:15px 20px; background:linear-gradient(90deg, rgba(139,92,246,0.15), rgba(217,70,239,0.1)); border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center; }
@@ -44,9 +44,9 @@
 
   .message { max-width:85%; padding:14px 18px; border-radius:16px; line-height:1.7; font-size:14.5px; animation:slideIn 0.3s ease; word-wrap:break-word; }
   @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-  .message.user { align-self:flex-start; background:linear-gradient(135deg,#6d28d9,#4c1d95); border-bottom-left-radius:4px; box-shadow:0 4px 15px rgba(109,40,217,0.3); }
-  .message.ai { align-self:flex-end; background:rgba(30, 27, 75, 0.8); border:1px solid rgba(139,92,246,0.3); border-bottom-right-radius:4px; box-shadow:0 4px 15px rgba(0,0,0,0.2); }
-  .message.error { align-self:center; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; font-size:13px; }
+  .message.user { align-self:flex-start; background:linear-gradient(135deg,#6d28d9,#4c1d95); border-bottom-left-radius:4px; }
+  .message.ai { align-self:flex-end; background:rgba(30, 27, 75, 0.8); border:1px solid rgba(139,92,246,0.3); border-bottom-right-radius:4px; }
+  .message.error { align-self:center; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; font-size:13px; text-align:center;}
   .message .role { font-size:11px; opacity:0.6; margin-bottom:6px; font-weight:700; color:#c4b5fd;}
 
   .input-area { padding:15px 20px; background:rgba(10,10,20,0.8); border-top:1px solid rgba(255,255,255,0.05); display:flex; gap:10px; align-items:center; }
@@ -55,7 +55,7 @@
   
   .action-btn { width:48px; height:48px; border-radius:50%; border:none; cursor:pointer; font-size:20px; display:flex; justify-content:center; align-items:center; transition:0.3s; }
   .send-btn { background:linear-gradient(135deg,#8b5cf6,#d946ef); color:#fff; }
-  .send-btn:hover { transform:scale(1.05); box-shadow:0 0 20px rgba(217,70,239,0.4); }
+  .send-btn:hover { transform:scale(1.05); }
   .mic-btn { background:rgba(255,255,255,0.1); color:#fff; }
   .mic-btn.listening { background:#ef4444; animation:listening 1.2s infinite; }
   @keyframes listening { 0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,0.5); } 50% { box-shadow:0 0 0 15px rgba(239,68,68,0); } }
@@ -86,7 +86,7 @@
   .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); background:linear-gradient(135deg,#8b5cf6,#d946ef); padding:12px 24px; border-radius:10px; color:#fff; font-weight:600; font-size:13px; z-index:10000; transition:0.4s; opacity:0; font-family:'Cairo'; }
   .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 
-  @media (max-width:600px) { .app { height:100vh; border-radius:0; border:none; } .message { max-width:92%; font-size:13.5px; } .text-input { padding:12px; } }
+  @media (max-width:600px) { .app { height:100vh; border-radius:0; border:none; } .message { max-width:92%; font-size:13.5px; } }
 </style>
 </head>
 <body>
@@ -125,8 +125,7 @@
 
     <div id="rulesPage">
       <div class="section-title">📜 قواعد وحدود السيناريو</div>
-      <div class="section-desc">هنا تحط المعلومات الأساسية والحدود اللي المساعد لازم يلتزم بيها (مثال: "أنت محقق في باريس"، "الزمن ليل").</div>
-      
+      <div class="section-desc">هنا تحط المعلومات الأساسية والحدود اللي المساعد لازم يلتزم بيها.</div>
       <div class="rule-form">
         <input type="text" id="ruleInput" class="rule-input" placeholder="أضف قاعدة..." onkeypress="if(event.key==='Enter') addRule()">
         <button class="add-rule-btn" onclick="addRule()">إضافة</button>
@@ -147,17 +146,7 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- رابط سحابي (Firebase) زي ما طلبت - بس مش هيستخدم في الذكاء الاصطناعي -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-
-<!-- مكتبة Google GenAI -->
-<script type="importmap">
-{ "imports": { "@google/genai": "https://esm.run/@google/genai" } }
-</script>
-
-<script type="module">
-import { GoogleGenAI } from '@google/genai';
-
+<script>
 const SECRET_PIN = "77777";
 const chatBox = document.getElementById('chat-box');
 const statusDiv = document.getElementById('status');
@@ -165,10 +154,10 @@ const micBtn = document.getElementById('micBtn');
 const textInput = document.getElementById('textInput');
 const ruleList = document.getElementById('ruleList');
 
-let ai = null;
 let isListening = false;
 let chatHistory = JSON.parse(localStorage.getItem('story_chat') || '[]');
 let userRules = JSON.parse(localStorage.getItem('story_rules') || '[]');
+let apiKey = localStorage.getItem('gemini_api_key') || '';
 
 window.unlock = function() {
   const input = document.getElementById('pinInput');
@@ -191,9 +180,7 @@ document.getElementById('pinInput').addEventListener('keypress', e => { if (e.ke
 function initApp() {
   chatHistory.forEach(msg => renderMessage(msg.role, msg.text));
   renderRules();
-  const savedKey = localStorage.getItem('gemini_api_key');
-  if (savedKey) {
-    ai = new GoogleGenAI({ apiKey: savedKey });
+  if (apiKey) {
     setStatus('✅ النظام جاهز. ابدأ السيناريو...');
   } else {
     setStatus('⚠️ الرجاء إدخال مفتاح API من الإعدادات');
@@ -214,14 +201,14 @@ window.switchTab = function(tab) {
 };
 
 window.openSettings = function() {
-  document.getElementById('apiKeyInput').value = localStorage.getItem('gemini_api_key') || '';
+  document.getElementById('apiKeyInput').value = apiKey;
   document.getElementById('settingsPanel').classList.add('show');
 };
 window.saveSettings = function() {
   const key = document.getElementById('apiKeyInput').value.trim();
   if (key) {
+    apiKey = key;
     localStorage.setItem('gemini_api_key', key);
-    ai = new GoogleGenAI({ apiKey: key });
     setStatus('✅ تم حفظ المفتاح.');
     document.getElementById('settingsPanel').classList.remove('show');
   } else {
@@ -268,7 +255,7 @@ if (SpeechRecognition) {
   recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); };
 }
 window.toggleMic = function() {
-  if (!ai) { showToast('⚠️ أدخل مفتاح API أولاً'); openSettings(); return; }
+  if (!apiKey) { showToast('⚠️ أدخل مفتاح API أولاً'); openSettings(); return; }
   if (!recognition) { showToast('❌ المتصفح لا يدعم الصوت'); return; }
   if (isListening) recognition.stop();
   else { if (window.speechSynthesis) window.speechSynthesis.cancel(); recognition.start(); }
@@ -281,8 +268,9 @@ window.sendText = function() {
   handleUserInput(text);
 };
 
+// *** الدالة دي اتغيرت عشان تستخدم الاتصال المباشر بدون مكتبات ***
 async function handleUserInput(text) {
-  if (!ai) { showToast('⚠️ أدخل مفتاح API أولاً'); return; }
+  if (!apiKey) { showToast('⚠️ أدخل مفتاح API أولاً'); return; }
   
   renderMessage('user', text);
   chatHistory.push({ role:'user', text });
@@ -300,22 +288,37 @@ async function handleUserInput(text) {
 
     const prompt = `أنت محرك سيناريوهات قصصي (Story Engine).\n${rulesContext}\n${recentHistory ? 'سياق الأحداث:\n' + recentHistory + '\n' : ''}\nالمستخدم يقول: "${text}"\nاكتب الرد بصيغة درامية قصصية، والتزم بالقواعد.`;
 
-    // تم تغيير الموديل لموديل 2.0 لضمان الاستقرار
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const result = await model.generateContent(prompt);
-    const response = result.response.text();
+    // رابط الاتصال المباشر بـ Gemini
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
 
-    renderMessage('ai', response);
-    chatHistory.push({ role:'ai', text:response });
+    const data = await response.json();
+
+    // لو فيه خطأ من السيرفر هنعرضه في الشات
+    if (data.error) {
+      throw new Error(data.error.message || 'خطأ من السيرفر');
+    }
+
+    // استخراج الرد
+    const aiText = data.candidates[0].content.parts[0].text;
+
+    renderMessage('ai', aiText);
+    chatHistory.push({ role:'ai', text:aiText });
     saveHistory();
-    speak(response);
+    speak(aiText);
 
   } catch (err) {
-    console.error("تفاصيل الخطأ:", err);
-    // عرض الخطأ الحقيقي للمستخدم
-    const errorMsg = err.message || 'حدث خطأ غير معروف';
-    renderMessage('error', 'خطأ: ' + errorMsg);
-    setStatus('❌ فشل الاتصال. راجع الخطأ في الشات.');
+    console.error("التفاصيل:", err);
+    // عرض الخطأ الحقيقي في الشات عشان نعرف السبب
+    renderMessage('error', '❌ سبب المشكلة: ' + err.message);
+    setStatus('❌ فشل الاتصال. راجع الخطأ بالأحمر.');
   }
 }
 
