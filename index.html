@@ -75,6 +75,7 @@
             display: flex; justify-content: space-between; align-items: center; background: rgba(15,13,33,0.9); flex-shrink: 0;
         }
         .chat-title { font-size: 1.1rem; font-weight: 700; }
+        .header-actions { display: flex; gap: 10px; }
         .icon-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 1.2rem; }
 
         /* شريط الكتابة والكيبورد في الأعلى تحت الهيدر مباشرة */
@@ -99,21 +100,27 @@
             flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth;
         }
         .message {
-            max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.6; font-size: 0.95rem; user-select: text; word-break: break-word;
+            max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.6; font-size: 0.95rem; user-select: text; word-break: break-word; position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
         }
         .message.user { align-self: flex-start; background: var(--user-msg-bg); color: #fff; }
         .message.ai { align-self: flex-end; background: var(--ai-msg-bg); border: 1px solid rgba(0,210,255,0.2); }
         .message.error-msg { background: rgba(255, 71, 87, 0.2); border: 1px solid var(--danger); color: #ff6b81; align-self: center; max-width: 90%; }
+        
+        .delete-msg-btn {
+            background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 0.9rem; padding: 0 4px;
+        }
+        .delete-msg-btn:hover { color: var(--danger); }
 
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: none; justify-content: center; align-items: center;
         }
         .modal-overlay.active { display: flex; }
-        .modal { background: var(--bg-card); padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid var(--border-glow); }
+        .modal { background: var(--bg-card); padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid var(--border-glow); }
         .modal-input {
             width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 10px; padding: 10px; color: #fff; margin-bottom: 1rem; outline: none;
         }
+        textarea.modal-input { resize: vertical; height: 80px; }
         .save-btn {
             width: 100%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
             border: none; color: white; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: 600;
@@ -140,7 +147,10 @@
         <main class="main-content">
             <header>
                 <div class="chat-title" id="current-chat-title">محادثة جديدة</div>
-                <button class="icon-btn" id="open-settings-btn">⚙️</button>
+                <div class="header-actions">
+                    <button class="icon-btn" id="open-rules-btn" title="إدخال معلومات/قواعد للنموذج">📌</button>
+                    <button class="icon-btn" id="open-settings-btn" title="الإعدادات">⚙️</button>
+                </div>
             </header>
 
             <!-- شريط الكتابة في الأعلى تماماً -->
@@ -157,6 +167,7 @@
         </main>
     </div>
 
+    <!-- نافذة إعدادات المفتاح -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal">
             <h3 style="margin-bottom: 1rem; color:var(--accent-blue);">إعدادات المفتاح (API Key)</h3>
@@ -165,10 +176,20 @@
         </div>
     </div>
 
+    <!-- نافذة إدخال معلومات أو قواعد للنموذج (System Instructions) -->
+    <div class="modal-overlay" id="rules-modal">
+        <div class="modal">
+            <h3 style="margin-bottom: 1rem; color:var(--accent-blue);">إدخال معلومات وقواعد للنموذج</h3>
+            <p style="color:var(--text-sub); font-size:0.85rem; margin-bottom:0.5rem;">حدد شخصية المساعد أو القواعد التي يجب أن يلتزم بها (مثل التحدث باللهجة المصرية دائماً):</p>
+            <textarea id="system-rules-input" class="modal-input" placeholder="اكتب التعليمات هنا..."></textarea>
+            <button class="save-btn" id="save-rules-btn">حفظ القواعد</button>
+        </div>
+    </div>
+
     <script>
         const PIN_CODE = "77777";
         let apiKey = localStorage.getItem('gemini_api_key') || '';
-        // تم تحديث اسم الموديل بناءً على طلب السيرفر المباشر في رسالة الخطأ
+        let systemRules = localStorage.getItem('gemini_system_rules') || 'أنت مساعد ذكاء اصطناعي ذكي ومحرك قصص محترف، والتزم دائماً بالرد باللهجة المصرية العامية.';
         let modelName = 'gemini-3.8-flash'; 
         let chats = JSON.parse(localStorage.getItem('app_chats')) || [];
         let currentChatId = null;
@@ -203,6 +224,18 @@
             alert('تم حفظ المفتاح بنجاح!');
         };
 
+        document.getElementById('open-rules-btn').onclick = () => {
+            document.getElementById('system-rules-input').value = systemRules;
+            document.getElementById('rules-modal').classList.add('active');
+        };
+
+        document.getElementById('save-rules-btn').onclick = () => {
+            systemRules = document.getElementById('system-rules-input').value.trim();
+            localStorage.setItem('gemini_system_rules', systemRules);
+            document.getElementById('rules-modal').classList.remove('active');
+            alert('تم حفظ قواعد ومعلومات النموذج بنجاح!');
+        };
+
         function renderHistory() {
             const list = document.getElementById('history-list');
             list.innerHTML = '';
@@ -225,11 +258,23 @@
             document.getElementById('current-chat-title').textContent = chat.title;
             const box = document.getElementById('chat-box');
             box.innerHTML = '';
-            chat.messages.forEach(msg => {
-                box.innerHTML += `<div class="message ${msg.role}">${msg.content}</div>`;
+            chat.messages.forEach((msg, index) => {
+                box.innerHTML += `
+                    <div class="message ${msg.role}">
+                        <span>${msg.content}</span>
+                        <button class="delete-msg-btn" onclick="deleteMessage(${index})" title="حذف الرسالة">🗑️</button>
+                    </div>`;
             });
             box.scrollTop = 0;
         }
+
+        window.deleteMessage = function(index) {
+            const chat = chats.find(c => c.id === currentChatId);
+            if(!chat) return;
+            chat.messages.splice(index, 1);
+            localStorage.setItem('app_chats', JSON.stringify(chats));
+            loadChat();
+        };
 
         document.getElementById('new-chat-btn').onclick = () => {
             const newId = 'chat_' + Date.now();
@@ -267,20 +312,29 @@
             chat.messages.push({role: 'user', content: text});
             localStorage.setItem('app_chats', JSON.stringify(chats));
             
-            const box = document.getElementById('chat-box');
-            box.innerHTML += `<div class="message user">${text}</div>`;
+            loadChat();
             document.getElementById('user-input').value = '';
-            box.scrollTop = 0;
             
+            const box = document.getElementById('chat-box');
             const loadingId = 'load_' + Date.now();
-            box.innerHTML += `<div class="message ai" id="${loadingId}">جاري التفكير والكتابة...</div>`;
+            box.innerHTML += `<div class="message ai" id="${loadingId}"><span>جاري التفكير والكتابة...</span></div>`;
             box.scrollTop = 0;
 
             try {
+                // إعداد حمولة الطلب مع دعم القواعد (System Instructions) وتفادي أخطاء الـ Payload
+                const payload = {
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [{ text: systemRules + "\n\nسؤال المستخدم هو: " + text }]
+                        }
+                    ]
+                };
+
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
+                    body: JSON.stringify(payload)
                 });
                 
                 const data = await res.json();
@@ -296,13 +350,12 @@
                 chat.messages.push({role: 'ai', content: reply});
                 localStorage.setItem('app_chats', JSON.stringify(chats));
 
-                box.innerHTML += `<div class="message ai">${reply}</div>`;
-                box.scrollTop = 0;
+                loadChat();
             } catch(e) {
                 const loadingEl = document.getElementById(loadingId);
                 if(loadingEl) loadingEl.remove();
                 
-                box.innerHTML += `<div class="message error-msg">❌ خطأ: ${e.message}</div>`;
+                box.innerHTML += `<div class="message error-msg"><span>❌ خطأ: ${e.message}</span></div>`;
                 box.scrollTop = 0;
             }
         }
