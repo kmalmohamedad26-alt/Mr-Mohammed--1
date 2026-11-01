@@ -3,191 +3,228 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مساعدي الذكي - صوتي</title>
+<title>المساعد القصصي الذكي</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, sans-serif; }
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+  
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo', sans-serif; }
   body {
     min-height:100vh;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    color:#fff; display:flex; justify-content:center; align-items:center;
-    padding:20px;
+    background: linear-gradient(135deg, #0a0a16, #1a103c, #0d0d1a);
+    color:#e2e8f0; display:flex; justify-content:center; align-items:center;
+    padding:15px; overflow:hidden;
   }
-  /* شاشة القفل */
+
+  /* ===== شاشة القفل ===== */
   .lock-screen {
     position:fixed; inset:0;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    background: radial-gradient(circle at center, #1a103c, #0a0a16);
     display:flex; flex-direction:column; justify-content:center; align-items:center;
-    z-index:9999; transition:opacity 0.6s;
+    z-index:9999; transition:opacity 0.8s ease;
   }
   .lock-screen.hidden { opacity:0; pointer-events:none; }
-  .lock-icon { font-size:70px; margin-bottom:20px; animation:pulse 2s infinite; }
+  .lock-icon { font-size:60px; margin-bottom:20px; animation:pulse 2.5s infinite; }
   @keyframes pulse {
-    0%,100% { transform:scale(1); filter:drop-shadow(0 0 15px #7c3aed); }
-    50% { transform:scale(1.1); filter:drop-shadow(0 0 30px #a855f7); }
+    0%,100% { transform:scale(1); filter:drop-shadow(0 0 15px #8b5cf6); }
+    50% { transform:scale(1.08); filter:drop-shadow(0 0 35px #d946ef); }
   }
-  .lock-screen h2 { margin-bottom:25px; font-weight:400; color:#c4b5fd; }
+  .lock-screen h2 { margin-bottom:25px; font-weight:600; color:#c4b5fd; font-size:18px; }
   .pin-input {
-    width:240px; padding:18px; text-align:center;
-    font-size:28px; letter-spacing:12px;
-    background:rgba(255,255,255,0.08);
-    border:2px solid rgba(168,85,247,0.4);
-    border-radius:16px; color:#fff; outline:none; transition:0.3s;
+    width:200px; padding:15px; text-align:center;
+    font-size:24px; letter-spacing:10px;
+    background:rgba(255,255,255,0.05);
+    border:2px solid rgba(139,92,246,0.3);
+    border-radius:12px; color:#fff; outline:none; transition:0.3s;
   }
-  .pin-input:focus { border-color:#a855f7; box-shadow:0 0 25px rgba(168,85,247,0.6); }
+  .pin-input:focus { border-color:#8b5cf6; box-shadow:0 0 20px rgba(139,92,246,0.4); }
   .unlock-btn {
-    margin-top:20px; padding:14px 50px;
-    background:linear-gradient(135deg,#7c3aed,#ec4899);
-    border:none; border-radius:14px; color:#fff;
-    font-size:17px; cursor:pointer; font-weight:600;
+    margin-top:20px; padding:12px 45px;
+    background:linear-gradient(135deg,#8b5cf6,#d946ef);
+    border:none; border-radius:10px; color:#fff;
+    font-size:16px; cursor:pointer; font-weight:600; font-family:'Cairo';
   }
-  .error-msg { color:#f87171; margin-top:15px; font-size:14px; height:20px; }
+  .error-msg { color:#f87171; margin-top:15px; font-size:13px; height:20px; }
   .shake { animation:shake 0.4s; }
   @keyframes shake {
     0%,100% { transform:translateX(0); }
-    25% { transform:translateX(-12px); }
-    75% { transform:translateX(12px); }
+    25% { transform:translateX(-10px); }
+    75% { transform:translateX(10px); }
   }
 
-  /* التطبيق */
+  /* ===== التطبيق ===== */
   .app {
-    width:100%; max-width:800px;
-    background:rgba(255,255,255,0.05);
-    backdrop-filter:blur(20px);
-    border-radius:24px;
-    border:1px solid rgba(255,255,255,0.1);
-    box-shadow:0 25px 60px rgba(0,0,0,0.5);
+    width:100%; max-width:900px;
+    background:rgba(20, 15, 35, 0.85);
+    backdrop-filter:blur(25px);
+    border-radius:20px;
+    border:1px solid rgba(139,92,246,0.2);
+    box-shadow:0 25px 60px rgba(0,0,0,0.6), inset 0 0 30px rgba(139,92,246,0.05);
     display:none; flex-direction:column;
-    height:90vh; overflow:hidden;
+    height:92vh; overflow:hidden;
+    position:relative;
   }
   .app.show { display:flex; }
 
+  /* ===== الهيدر والتبويبات ===== */
   .header {
-    padding:18px 24px;
-    background:linear-gradient(90deg, rgba(124,58,237,0.3), rgba(236,72,153,0.2));
-    border-bottom:1px solid rgba(255,255,255,0.1);
+    padding:15px 20px;
+    background:linear-gradient(90deg, rgba(139,92,246,0.15), rgba(217,70,239,0.1));
+    border-bottom:1px solid rgba(255,255,255,0.05);
     display:flex; justify-content:space-between; align-items:center;
   }
-  .header h1 { font-size:19px; }
+  .header h1 { font-size:18px; font-weight:700; color:#f8fafc; display:flex; align-items:center; gap:8px;}
   .header-btns { display:flex; gap:8px; }
   .icon-btn {
-    background:rgba(255,255,255,0.1); border:none; color:#fff;
-    width:38px; height:38px; border-radius:50%;
-    cursor:pointer; font-size:16px; transition:0.3s;
+    background:rgba(255,255,255,0.05); border:none; color:#e2e8f0;
+    width:36px; height:36px; border-radius:10px;
+    cursor:pointer; font-size:15px; transition:0.3s;
   }
-  .icon-btn:hover { background:rgba(168,85,247,0.4); }
+  .icon-btn:hover { background:rgba(139,92,246,0.3); }
 
+  .tabs { display:flex; background:rgba(0,0,0,0.2); border-bottom:1px solid rgba(255,255,255,0.05); }
+  .tab {
+    flex:1; padding:12px; background:transparent; border:none;
+    color:#94a3b8; font-family:'Cairo'; font-size:14px; font-weight:600;
+    cursor:pointer; transition:0.3s; border-bottom:2px solid transparent;
+  }
+  .tab.active { color:#d8b4fe; border-bottom-color:#d8b4fe; background:rgba(139,92,246,0.1); }
+
+  /* ===== المحتوى ===== */
+  .content-area { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+  
+  /* ----- تبويب المحادثة ----- */
+  #chatPage { display:flex; flex-direction:column; height:100%; }
   #status {
-    text-align:center; padding:10px;
-    font-size:13px; color:#4ade80;
-    background:rgba(74,222,128,0.08);
-    border-bottom:1px solid rgba(74,222,128,0.15);
+    text-align:center; padding:8px; font-size:12px; color:#a78bfa;
+    background:rgba(139,92,246,0.1); border-bottom:1px solid rgba(139,92,246,0.1);
+    transition:0.3s;
   }
-
+  
   #chat-box {
     flex:1; overflow-y:auto; padding:20px;
-    display:flex; flex-direction:column; gap:12px;
+    display:flex; flex-direction:column; gap:15px;
   }
-  #chat-box::-webkit-scrollbar { width:6px; }
-  #chat-box::-webkit-scrollbar-thumb { background:#7c3aed; border-radius:3px; }
+  #chat-box::-webkit-scrollbar { width:5px; }
+  #chat-box::-webkit-scrollbar-thumb { background:#8b5cf6; border-radius:5px; }
 
   .message {
-    max-width:85%; padding:12px 16px;
-    border-radius:16px; line-height:1.6;
-    font-size:14.5px; animation:slideIn 0.3s ease;
-    word-wrap:break-word;
+    max-width:85%; padding:14px 18px;
+    border-radius:16px; line-height:1.7; font-size:14.5px;
+    animation:slideIn 0.3s ease; word-wrap:break-word;
   }
-  @keyframes slideIn {
-    from { opacity:0; transform:translateY(10px); }
-    to { opacity:1; transform:translateY(0); }
-  }
+  @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
   .message.user {
     align-self:flex-start;
-    background:linear-gradient(135deg,#7c3aed,#6d28d9);
+    background:linear-gradient(135deg,#6d28d9,#4c1d95);
     border-bottom-left-radius:4px;
+    box-shadow:0 4px 15px rgba(109,40,217,0.3);
   }
   .message.ai {
     align-self:flex-end;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(168,85,247,0.2);
+    background:rgba(30, 27, 75, 0.8);
+    border:1px solid rgba(139,92,246,0.3);
     border-bottom-right-radius:4px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.2);
   }
-  .message .role {
-    font-size:11px; opacity:0.6; margin-bottom:4px;
-    font-weight:600;
+  .message .role { font-size:11px; opacity:0.6; margin-bottom:6px; font-weight:700; color:#c4b5fd;}
+
+  /* ----- منطقة الإدخال ----- */
+  .input-area {
+    padding:15px 20px; background:rgba(10,10,20,0.8);
+    border-top:1px solid rgba(255,255,255,0.05);
+    display:flex; gap:10px; align-items:center;
+  }
+  .text-input {
+    flex:1; padding:14px 18px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(139,92,246,0.3);
+    border-radius:14px; color:#fff; outline:none;
+    font-family:'Cairo'; font-size:14px; transition:0.3s;
+  }
+  .text-input:focus { border-color:#8b5cf6; box-shadow:0 0 15px rgba(139,92,246,0.2); }
+  
+  .action-btn {
+    width:48px; height:48px; border-radius:50%;
+    border:none; cursor:pointer; font-size:20px;
+    display:flex; justify-content:center; align-items:center;
+    transition:0.3s;
+  }
+  .send-btn { background:linear-gradient(135deg,#8b5cf6,#d946ef); color:#fff; }
+  .send-btn:hover { transform:scale(1.05); box-shadow:0 0 20px rgba(217,70,239,0.4); }
+  
+  .mic-btn { background:rgba(255,255,255,0.1); color:#fff; }
+  .mic-btn.listening { background:#ef4444; animation:listening 1.2s infinite; }
+  @keyframes listening { 0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,0.5); } 50% { box-shadow:0 0 0 15px rgba(239,68,68,0); } }
+
+  /* ----- تبويب المعلومات الرئيسية ----- */
+  #rulesPage { display:none; flex-direction:column; height:100%; padding:20px; overflow-y:auto; }
+  #rulesPage.active-tab { display:flex; }
+  
+  .section-title { font-size:16px; color:#d8b4fe; margin-bottom:10px; font-weight:700; }
+  .section-desc { font-size:13px; color:#94a3b8; margin-bottom:15px; line-height:1.6; }
+  
+  .rule-form { display:flex; gap:10px; margin-bottom:20px; }
+  .rule-input {
+    flex:1; padding:12px; background:rgba(255,255,255,0.05);
+    border:1px solid rgba(139,92,246,0.3); border-radius:10px;
+    color:#fff; font-family:'Cairo'; font-size:14px; outline:none;
+  }
+  .rule-input:focus { border-color:#8b5cf6; }
+  .add-rule-btn {
+    padding:0 20px; background:linear-gradient(135deg,#8b5cf6,#d946ef);
+    border:none; border-radius:10px; color:#fff; font-family:'Cairo';
+    font-weight:600; cursor:pointer; transition:0.3s;
   }
 
-  .controls {
-    padding:18px 24px;
-    border-top:1px solid rgba(255,255,255,0.08);
-    display:flex; gap:10px; justify-content:center; align-items:center;
-    background:rgba(0,0,0,0.2);
+  .rule-list { display:flex; flex-direction:column; gap:10px; }
+  .rule-item {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+    padding:15px; border-radius:12px; display:flex; justify-content:space-between;
+    align-items:center; gap:15px; font-size:14px; line-height:1.5;
   }
-  .mic-btn {
-    width:70px; height:70px; border-radius:50%;
-    background:linear-gradient(135deg,#7c3aed,#ec4899);
-    border:none; color:#fff; font-size:28px;
-    cursor:pointer; transition:0.3s;
-    box-shadow:0 8px 25px rgba(236,72,153,0.4);
+  .rule-item .rule-text { flex:1; color:#e2e8f0; }
+  .delete-btn {
+    background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3);
+    color:#f87171; padding:6px 12px; border-radius:8px; cursor:pointer;
+    font-family:'Cairo'; font-size:12px; transition:0.3s;
   }
-  .mic-btn:hover:not(:disabled) { transform:scale(1.08); }
-  .mic-btn:disabled { opacity:0.5; cursor:not-allowed; }
-  .mic-btn.listening {
-    animation:listening 1.2s infinite;
-    background:linear-gradient(135deg,#ef4444,#ec4899);
-  }
-  @keyframes listening {
-    0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,0.7); }
-    50% { box-shadow:0 0 0 20px rgba(239,68,68,0); }
-  }
+  .delete-btn:hover { background:rgba(239,68,68,0.3); }
+  .empty-state { text-align:center; color:#64748b; padding:30px; font-size:14px; }
 
-  /* الإعدادات */
+  /* ===== الإعدادات ===== */
   .settings-panel {
-    position:fixed; inset:0; background:rgba(0,0,0,0.8);
-    display:none; justify-content:center; align-items:center;
-    z-index:1000; padding:20px;
+    position:absolute; inset:0; background:rgba(10,10,20,0.95);
+    backdrop-filter:blur(10px); display:none; justify-content:center;
+    align-items:center; z-index:100; padding:20px;
   }
   .settings-panel.show { display:flex; }
   .settings-box {
-    background:#1e1b4b; padding:30px; border-radius:20px;
-    width:100%; max-width:450px;
-    border:1px solid rgba(168,85,247,0.3);
+    background:#1a103c; padding:25px; border-radius:16px;
+    width:100%; max-width:400px; border:1px solid rgba(139,92,246,0.3);
   }
-  .settings-box h3 { color:#c4b5fd; margin-bottom:20px; }
-  .settings-box label {
-    display:block; margin-bottom:8px; color:#c4b5fd;
-    font-size:14px; margin-top:15px;
-  }
+  .settings-box h3 { color:#d8b4fe; margin-bottom:15px; font-size:16px;}
+  .settings-box label { display:block; margin:12px 0 6px; color:#c4b5fd; font-size:13px; }
   .settings-box input {
-    width:100%; padding:12px 16px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(168,85,247,0.3);
-    border-radius:10px; color:#fff; outline:none;
-    font-size:14px;
+    width:100%; padding:10px; background:rgba(0,0,0,0.3);
+    border:1px solid rgba(139,92,246,0.3); border-radius:8px;
+    color:#fff; outline:none; font-family:'Cairo'; font-size:13px;
   }
-  .settings-box input:focus { border-color:#a855f7; }
-  .settings-box small { color:#9ca3af; font-size:12px; display:block; margin-top:6px; }
-  .settings-actions { display:flex; gap:10px; margin-top:20px; }
-  .settings-actions button {
-    flex:1; padding:12px; border:none; border-radius:10px;
-    cursor:pointer; font-weight:600; font-size:14px;
-  }
-  .btn-save { background:linear-gradient(135deg,#7c3aed,#ec4899); color:#fff; }
-  .btn-close { background:rgba(255,255,255,0.1); color:#fff; }
+  .settings-box input:focus { border-color:#8b5cf6; }
+  .btn-save { width:100%; padding:12px; margin-top:20px; background:linear-gradient(135deg,#8b5cf6,#d946ef); border:none; border-radius:8px; color:#fff; font-family:'Cairo'; font-weight:600; cursor:pointer; }
 
   .toast {
-    position:fixed; bottom:30px; left:50%;
-    transform:translateX(-50%) translateY(100px);
-    background:linear-gradient(135deg,#7c3aed,#ec4899);
-    padding:12px 28px; border-radius:14px;
-    color:#fff; font-weight:600; z-index:10000;
-    transition:0.4s; opacity:0; font-size:14px;
+    position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px);
+    background:linear-gradient(135deg,#8b5cf6,#d946ef);
+    padding:12px 24px; border-radius:10px; color:#fff;
+    font-weight:600; font-size:13px; z-index:10000; transition:0.4s; opacity:0;
+    font-family:'Cairo';
   }
   .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 
   @media (max-width:600px) {
-    .app { height:95vh; border-radius:16px; }
-    .header h1 { font-size:15px; }
-    .message { font-size:13.5px; }
+    .app { height:100vh; border-radius:0; border:none; }
+    .message { max-width:92%; font-size:13.5px; }
+    .text-input { padding:12px; }
   }
 </style>
 </head>
@@ -196,7 +233,7 @@
 <!-- شاشة القفل -->
 <div class="lock-screen" id="lockScreen">
   <div class="lock-icon">🔒</div>
-  <h2>أدخل الرقم السري</h2>
+  <h2>أدخل الرقم السري للمتابعة</h2>
   <input type="password" class="pin-input" id="pinInput" maxlength="5" placeholder="•••••" inputmode="numeric">
   <button class="unlock-btn" onclick="unlock()">دخول</button>
   <div class="error-msg" id="errorMsg"></div>
@@ -205,46 +242,55 @@
 <!-- التطبيق -->
 <div class="app" id="app">
   <div class="header">
-    <h1>🤖 مساعدي الذكي</h1>
+    <h1>📖 المساعد القصصي</h1>
     <div class="header-btns">
-      <button class="icon-btn" onclick="clearChat()" title="مسح المحادثة">🗑️</button>
       <button class="icon-btn" onclick="openSettings()" title="الإعدادات">⚙️</button>
     </div>
   </div>
 
-  <div id="status">اضغط على الميكروفون وابدأ الكلام</div>
-
-  <div id="chat-box"></div>
-
-  <div class="controls">
-    <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎤</button>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('chat')">💬 السيناريو</button>
+    <button class="tab" onclick="switchTab('rules')">📜 المعلومات الرئيسية</button>
   </div>
-</div>
 
-<!-- إعدادات -->
-<div class="settings-panel" id="settingsPanel">
-  <div class="settings-box">
-    <h3>⚙️ الإعدادات</h3>
-    <label>مفتاح Gemini API:</label>
-    <input type="password" id="apiKeyInput" placeholder="الصق مفتاحك هنا...">
-    <small>احصل عليه من aistudio.google.com/apikey</small>
+  <div class="content-area">
+    <!-- تبويب المحادثة -->
+    <div id="chatPage">
+      <div id="status">اضغط الميكروفون أو اكتب في الأسفل...</div>
+      <div id="chat-box"></div>
+      <div class="input-area">
+        <input type="text" id="textInput" class="text-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') sendText()">
+        <button class="action-btn send-btn" onclick="sendText()" title="إرسال">➤</button>
+        <button class="action-btn mic-btn" id="micBtn" onclick="toggleMic()" title="تحدث">🎤</button>
+      </div>
+    </div>
 
-    <label>Firebase Config (اختياري - JSON):</label>
-    <input type="text" id="firebaseInput" placeholder='{"apiKey":"...","projectId":"..."}'>
-    <small>لو ضبطتها، محادثاتك هتتحفظ سحابياً</small>
+    <!-- تبويب المعلومات الرئيسية -->
+    <div id="rulesPage">
+      <div class="section-title">📜 قواعد وحدود السيناريو</div>
+      <div class="section-desc">هنا تحط المعلومات الأساسية والحدود اللي المساعد لازم يلتزم بيها في القصة أو المحاكاة (مثال: "أنت شخصية محقق", "لا تخرج عن الشخصية", "الزمن هو 1990").</div>
+      
+      <div class="rule-form">
+        <input type="text" id="ruleInput" class="rule-input" placeholder="أضف قاعدة أو معلومة رئيسية..." onkeypress="if(event.key==='Enter') addRule()">
+        <button class="add-rule-btn" onclick="addRule()">إضافة</button>
+      </div>
 
-    <div class="settings-actions">
-      <button class="btn-save" onclick="saveSettings()">💾 حفظ</button>
-      <button class="btn-close" onclick="closeSettings()">إغلاق</button>
+      <div class="rule-list" id="ruleList"></div>
+    </div>
+  </div>
+
+  <!-- الإعدادات -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-box">
+      <h3>⚙️ الإعدادات</h3>
+      <label>مفتاح Gemini API (ضروري):</label>
+      <input type="password" id="apiKeyInput" placeholder="الصق المفتاح هنا...">
+      <button class="btn-save" onclick="saveSettings()">حفظ وإغلاق</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <!-- Google GenAI -->
 <script type="importmap">
@@ -258,13 +304,15 @@ const SECRET_PIN = "77777";
 const chatBox = document.getElementById('chat-box');
 const statusDiv = document.getElementById('status');
 const micBtn = document.getElementById('micBtn');
+const textInput = document.getElementById('textInput');
+const ruleList = document.getElementById('ruleList');
 
 let ai = null;
 let isListening = false;
-let chatHistory = JSON.parse(localStorage.getItem('chat_history') || '[]');
-let db = null;
+let chatHistory = JSON.parse(localStorage.getItem('story_chat') || '[]');
+let userRules = JSON.parse(localStorage.getItem('story_rules') || '[]');
 
-/* ========== شاشة القفل ========== */
+/* ====== شاشة القفل ====== */
 let attempts = 0;
 window.unlock = function() {
   const input = document.getElementById('pinInput');
@@ -290,62 +338,84 @@ document.getElementById('pinInput').addEventListener('keypress', e => {
   if (e.key === 'Enter') window.unlock();
 });
 
-/* ========== التهيئة ========== */
+/* ====== التهيئة ====== */
 function initApp() {
-  // تحميل المحادثة السابقة
   chatHistory.forEach(msg => renderMessage(msg.role, msg.text));
-
-  // تحميل المفتاح
+  renderRules();
+  
   const savedKey = localStorage.getItem('gemini_api_key');
   if (savedKey) {
     ai = new GoogleGenAI({ apiKey: savedKey });
-    setStatus('✅ جاهز! اضغط الميكروفون');
+    setStatus('✅ النظام جاهز. ابدأ السيناريو...');
   } else {
-    setStatus('⚠️ افتح ⚙️ وأدخل مفتاح API');
+    setStatus('⚠️ الرجاء إدخال مفتاح API من الإعدادات');
     openSettings();
-  }
-
-  // Firebase
-  const fbConfig = localStorage.getItem('firebase_config');
-  if (fbConfig) {
-    try {
-      const cfg = JSON.parse(fbConfig);
-      if (!firebase.apps.length) firebase.initializeApp(cfg);
-      db = firebase.firestore();
-      console.log('✅ Firebase متصل');
-    } catch(e) { console.warn('Firebase:', e.message); }
   }
 }
 
-/* ========== الإعدادات ========== */
+/* ====== التبويبات ====== */
+window.switchTab = function(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#chatPage, #rulesPage').forEach(p => p.style.display = 'none');
+  
+  if (tab === 'chat') {
+    document.querySelector('.tabs .tab:nth-child(1)').classList.add('active');
+    document.getElementById('chatPage').style.display = 'flex';
+  } else {
+    document.querySelector('.tabs .tab:nth-child(2)').classList.add('active');
+    document.getElementById('rulesPage').style.display = 'flex';
+  }
+};
+
+/* ====== إعدادات المفتاح ====== */
 window.openSettings = function() {
   document.getElementById('apiKeyInput').value = localStorage.getItem('gemini_api_key') || '';
-  document.getElementById('firebaseInput').value = localStorage.getItem('firebase_config') || '';
   document.getElementById('settingsPanel').classList.add('show');
-};
-window.closeSettings = function() {
-  document.getElementById('settingsPanel').classList.remove('show');
 };
 window.saveSettings = function() {
   const key = document.getElementById('apiKeyInput').value.trim();
-  const fb = document.getElementById('firebaseInput').value.trim();
-
   if (key) {
     localStorage.setItem('gemini_api_key', key);
     ai = new GoogleGenAI({ apiKey: key });
-    setStatus('✅ جاهز! اضغط الميكروفون');
+    setStatus('✅ تم حفظ المفتاح. ابدأ السيناريو!');
+    document.getElementById('settingsPanel').classList.remove('show');
+  } else {
+    showToast('⚠️ أدخل مفتاح صالح');
   }
-  if (fb) {
-    try {
-      JSON.parse(fb);
-      localStorage.setItem('firebase_config', fb);
-    } catch(e) { showToast('⚠️ JSON غير صالح'); return; }
-  }
-  showToast('✅ تم الحفظ');
-  closeSettings();
 };
 
-/* ========== المايك ========== */
+/* ====== المعلومات الرئيسية ====== */
+window.addRule = function() {
+  const input = document.getElementById('ruleInput');
+  const text = input.value.trim();
+  if (!text) return;
+  userRules.push(text);
+  localStorage.setItem('story_rules', JSON.stringify(userRules));
+  input.value = '';
+  renderRules();
+  showToast('✅ تمت إضافة القاعدة');
+};
+
+window.deleteRule = function(index) {
+  userRules.splice(index, 1);
+  localStorage.setItem('story_rules', JSON.stringify(userRules));
+  renderRules();
+};
+
+function renderRules() {
+  if (userRules.length === 0) {
+    ruleList.innerHTML = '<div class="empty-state">لا توجد قواعد أو معلومات رئيسية بعد.</div>';
+    return;
+  }
+  ruleList.innerHTML = userRules.map((rule, i) => `
+    <div class="rule-item">
+      <div class="rule-text">${escapeHtml(rule)}</div>
+      <button class="delete-btn" onclick="deleteRule(${i})">🗑️</button>
+    </div>
+  `).join('');
+}
+
+/* ====== الإدخال الصوتي ====== */
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 
@@ -353,8 +423,7 @@ if (SpeechRecognition) {
   recognition = new SpeechRecognition();
   recognition.lang = 'ar-EG';
   recognition.interimResults = false;
-  recognition.continuous = false;
-
+  
   recognition.onstart = () => {
     isListening = true;
     micBtn.classList.add('listening');
@@ -378,61 +447,53 @@ if (SpeechRecognition) {
 window.toggleMic = function() {
   if (!ai) { showToast('⚠️ أدخل مفتاح API أولاً'); openSettings(); return; }
   if (!recognition) { showToast('❌ المتصفح لا يدعم الصوت'); return; }
-
-  if (isListening) {
-    recognition.stop();
-  } else {
-    // إيقاف أي نطق سابق
+  
+  if (isListening) recognition.stop();
+  else {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     recognition.start();
   }
 };
 
-/* ========== معالجة الإدخال ========== */
+/* ====== إرسال نص ====== */
+window.sendText = function() {
+  const text = textInput.value.trim();
+  if (!text) return;
+  textInput.value = '';
+  handleUserInput(text);
+};
+
+/* ====== العقل المدبر (المعالجة) ====== */
 async function handleUserInput(text) {
+  if (!ai) { showToast('⚠️ أدخل مفتاح API أولاً'); return; }
+  
   renderMessage('user', text);
   chatHistory.push({ role:'user', text });
   saveHistory();
-  setStatus('🤔 جاري التفكير...');
+  setStatus('✍️ يكتب السيناريو...');
 
   try {
-    // 1. البحث في ذاكرة Firebase أولاً (لو متصلة)
-    let personalContext = '';
-    if (db) {
-      const keywords = text.split(/\s+/).filter(w => w.length > 2);
-      try {
-        const snap = await db.collection('memories').limit(20).get();
-        const matches = [];
-        snap.forEach(doc => {
-          const d = doc.data();
-          const full = ((d.question||'') + ' ' + (d.answer||'')).toLowerCase();
-          if (keywords.some(k => full.includes(k.toLowerCase()))) {
-            matches.push(`س: ${d.question} — ج: ${d.answer}`);
-          }
-        });
-        if (matches.length) personalContext = `\n\nمعلومات من ذاكرتك الشخصية:\n${matches.join('\n')}`;
-      } catch(e) { console.warn('بحث Firebase فشل:', e.message); }
-    }
+    // تحويل القواعد لسياق نصي
+    const rulesContext = userRules.length > 0 
+      ? `إليك القواعد الأساسية والمعلومات التي يجب أن تلتزم بها حرفياً:\n- ${userRules.join('\n- ')}` 
+      : 'لا توجد قواعد محددة، تصرف كمساعد قصصي ذكي.';
 
-    // 2. بناء الـ prompt
-    const historyText = chatHistory.slice(-6, -1)
-      .map(h => `${h.role === 'user' ? 'المستخدم' : 'المساعد'}: ${h.text}`)
+    // سياق المحادثة القصصي
+    const recentHistory = chatHistory.slice(-6, -1)
+      .map(h => `${h.role === 'user' ? 'المستخدم' : 'الراوي'}: ${h.text}`)
       .join('\n');
 
-    const prompt = `أنت مساعد شخصي ذكي باللغة العربية. 
-- أجب بإيجاز ووضوح.
-- لو تحتاج معلومة حديثة استخدم البحث.
-- لو عندك معلومات شخصية عن المستخدم استخدمها.${personalContext}
+    const prompt = `أنت الآن محرك سيناريوهات قصصي وتفاعلي (Story Engine).
+مهمتك هي محاكاة القصص والرد على المستخدم كشخصية داخل القصة أو كراوي يعطي تفاصيل درامية ومشوقة.
 
-${historyText ? 'سياق المحادثة:\n' + historyText + '\n' : ''}
-المستخدم: ${text}`;
+${rulesContext}
 
-    // 3. استدعاء Gemini مع البحث
-    const model = ai.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      tools: [{ googleSearch: {} }]
-    });
+${recentHistory ? 'سياق الأحداث السابقة:\n' + recentHistory + '\n' : ''}
 
+المستخدم يقول: "${text}"
+اكتب الرد المناسب بصيغة درامية قصصية، التزم بالقواعد، واجعل الرد باللغة العربية الفصحى أو بلهجة تناسب القصة.`;
+
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const response = result.response.text();
 
@@ -443,46 +504,37 @@ ${historyText ? 'سياق المحادثة:\n' + historyText + '\n' : ''}
 
   } catch (err) {
     console.error(err);
-    const msg = '❌ خطأ: ' + (err.message || 'حاول تاني');
-    setStatus(msg);
-    showToast(msg);
+    setStatus('❌ حدث خطأ في الاتصال');
+    showToast('❌ فشل الاتصال بالذكاء الاصطناعي. تأكد من المفتاح والإنترنت.');
   }
 }
 
-/* ========== النطق ========== */
+/* ====== النطق ====== */
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = 'ar-SA';
-  utt.rate = 1;
+  utt.rate = 0.95; // نطق أهدأ للقصص
   utt.pitch = 1;
-  utt.onstart = () => setStatus('🔊 جاري الرد...');
+  utt.onstart = () => setStatus('🔊 يروي...');
   utt.onend = () => setStatus('✅ جاهز');
   window.speechSynthesis.speak(utt);
 }
 
-/* ========== الواجهة ========== */
+/* ====== الواجهة ====== */
 function renderMessage(role, text) {
   const div = document.createElement('div');
   div.className = `message ${role}`;
-  div.innerHTML = `<div class="role">${role === 'user' ? '🧑 أنت' : '🤖 المساعد'}</div>${escapeHtml(text)}`;
+  div.innerHTML = `<div class="role">${role === 'user' ? '🧑 أنت' : '📖 الراوي'}</div>${escapeHtml(text).replace(/\n/g, '<br>')}`;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 function saveHistory() {
-  if (chatHistory.length > 100) chatHistory = chatHistory.slice(-100);
-  localStorage.setItem('chat_history', JSON.stringify(chatHistory));
+  if (chatHistory.length > 50) chatHistory = chatHistory.slice(-50);
+  localStorage.setItem('story_chat', JSON.stringify(chatHistory));
 }
-
-window.clearChat = function() {
-  if (!confirm('مسح المحادثة كلها؟')) return;
-  chatHistory = [];
-  localStorage.removeItem('chat_history');
-  chatBox.innerHTML = '';
-  showToast('🗑️ تم المسح');
-};
 
 function setStatus(txt) { statusDiv.textContent = txt; }
 
@@ -499,6 +551,5 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 </script>
-
 </body>
 </html>
