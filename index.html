@@ -168,8 +168,8 @@
     <script>
         const PIN_CODE = "77777";
         let apiKey = localStorage.getItem('gemini_api_key') || '';
-        // ضبط الموديل على الإصدار المتوافق تماماً
-        let modelName = 'gemini-2.0-flash'; 
+        // تم تحديث اسم الموديل بناءً على طلب السيرفر المباشر في رسالة الخطأ
+        let modelName = 'gemini-3.8-flash'; 
         let chats = JSON.parse(localStorage.getItem('app_chats')) || [];
         let currentChatId = null;
 
