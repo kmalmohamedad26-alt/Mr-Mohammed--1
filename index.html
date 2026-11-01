@@ -148,12 +148,11 @@
             <header>
                 <div class="chat-title" id="current-chat-title">محادثة جديدة</div>
                 <div class="header-actions">
-                    <button class="icon-btn" id="open-rules-btn" title="إدخال معلومات/قواعد للنموذج">📌</button>
+                    <button class="icon-btn" id="open-rules-btn" title="قواعد النموذج">📌</button>
                     <button class="icon-btn" id="open-settings-btn" title="الإعدادات">⚙️</button>
                 </div>
             </header>
 
-            <!-- شريط الكتابة في الأعلى تماماً -->
             <div class="input-area">
                 <button class="mic-btn" id="mic-btn" title="تحدث">🎤</button>
                 <div class="input-box-wrapper">
@@ -162,12 +161,10 @@
                 <button class="send-btn" id="send-btn" title="إرسال">➤</button>
             </div>
 
-            <!-- صندوق الرسائل تحته مباشرة -->
             <div class="chat-box" id="chat-box"></div>
         </main>
     </div>
 
-    <!-- نافذة إعدادات المفتاح -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal">
             <h3 style="margin-bottom: 1rem; color:var(--accent-blue);">إعدادات المفتاح (API Key)</h3>
@@ -176,11 +173,9 @@
         </div>
     </div>
 
-    <!-- نافذة إدخال معلومات أو قواعد للنموذج (System Instructions) -->
     <div class="modal-overlay" id="rules-modal">
         <div class="modal">
-            <h3 style="margin-bottom: 1rem; color:var(--accent-blue);">إدخال معلومات وقواعد للنموذج</h3>
-            <p style="color:var(--text-sub); font-size:0.85rem; margin-bottom:0.5rem;">حدد شخصية المساعد أو القواعد التي يجب أن يلتزم بها (مثل التحدث باللهجة المصرية دائماً):</p>
+            <h3 style="margin-bottom: 1rem; color:var(--accent-blue);">قواعد ومعلومات النموذج</h3>
             <textarea id="system-rules-input" class="modal-input" placeholder="اكتب التعليمات هنا..."></textarea>
             <button class="save-btn" id="save-rules-btn">حفظ القواعد</button>
         </div>
@@ -189,8 +184,8 @@
     <script>
         const PIN_CODE = "77777";
         let apiKey = localStorage.getItem('gemini_api_key') || '';
-        let systemRules = localStorage.getItem('gemini_system_rules') || 'أنت مساعد ذكاء اصطناعي ذكي ومحرك قصص محترف، والتزم دائماً بالرد باللهجة المصرية العامية.';
-        let modelName = 'gemini-3.8-flash'; 
+        let systemRules = localStorage.getItem('gemini_system_rules') || 'أنت مساعد ذكي ومحرك قصص، ورد دائماً باللهجة المصرية العامية.';
+        let modelName = 'gemini-1.5-flash';
         let chats = JSON.parse(localStorage.getItem('app_chats')) || [];
         let currentChatId = null;
 
@@ -233,7 +228,7 @@
             systemRules = document.getElementById('system-rules-input').value.trim();
             localStorage.setItem('gemini_system_rules', systemRules);
             document.getElementById('rules-modal').classList.remove('active');
-            alert('تم حفظ قواعد ومعلومات النموذج بنجاح!');
+            alert('تم حفظ القواعد بنجاح!');
         };
 
         function renderHistory() {
@@ -262,7 +257,7 @@
                 box.innerHTML += `
                     <div class="message ${msg.role}">
                         <span>${msg.content}</span>
-                        <button class="delete-msg-btn" onclick="deleteMessage(${index})" title="حذف الرسالة">🗑️</button>
+                        <button class="delete-msg-btn" onclick="window.deleteMessage(${index})" title="حذف الرسالة">🗑️</button>
                     </div>`;
             });
             box.scrollTop = 0;
@@ -311,7 +306,6 @@
 
             chat.messages.push({role: 'user', content: text});
             localStorage.setItem('app_chats', JSON.stringify(chats));
-            
             loadChat();
             document.getElementById('user-input').value = '';
             
@@ -321,20 +315,14 @@
             box.scrollTop = 0;
 
             try {
-                // إعداد حمولة الطلب مع دعم القواعد (System Instructions) وتفادي أخطاء الـ Payload
-                const payload = {
-                    contents: [
-                        {
-                            role: "user",
-                            parts: [{ text: systemRules + "\n\nسؤال المستخدم هو: " + text }]
-                        }
-                    ]
-                };
-
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: systemRules + "\n\nسؤال المستخدم: " + text }]
+                        }]
+                    })
                 });
                 
                 const data = await res.json();
@@ -349,7 +337,6 @@
 
                 chat.messages.push({role: 'ai', content: reply});
                 localStorage.setItem('app_chats', JSON.stringify(chats));
-
                 loadChat();
             } catch(e) {
                 const loadingEl = document.getElementById(loadingId);
