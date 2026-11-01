@@ -1,615 +1,216 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مساعد الذكاء الاصطناعي ومحرك القصص</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --bg-base: #0a0915;
-            --bg-surface: rgba(18, 16, 38, 0.85);
-            --bg-card: rgba(27, 24, 56, 0.85);
-            --border-glow: rgba(138, 43, 226, 0.3);
-            --accent-purple: #8a2be2;
-            --accent-blue: #00d2ff;
-            --text-main: #f0f2f8;
-            --text-sub: #a0a5c0;
-            --user-msg-bg: linear-gradient(135deg, rgba(138, 43, 226, 0.4), rgba(75, 0, 130, 0.5));
-            --ai-msg-bg: rgba(20, 24, 45, 0.85);
-            --danger: #ff4757;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; user-select: none; }
-
-        html, body {
-            width: 100%; height: 100%; overflow: hidden;
-            background-color: var(--bg-base);
-            background-image: radial-gradient(circle at 15% 20%, rgba(138, 43, 226, 0.15) 0%, transparent 40%),
-                              radial-gradient(circle at 85% 80%, rgba(0, 210, 255, 0.15) 0%, transparent 40%);
-            color: var(--text-main);
-        }
-
-        /* شاشة القفل */
-        #lock-screen {
-            position: fixed; inset: 0; background: rgba(10, 9, 21, 0.95);
-            backdrop-filter: blur(20px); z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-        #lock-screen.hidden { opacity: 0; visibility: hidden; }
-        .lock-box {
-            background: var(--bg-card); border: 1px solid var(--border-glow);
-            padding: 2.5rem; border-radius: 24px; box-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
-            text-align: center; width: 90%; max-width: 400px;
-        }
-        .lock-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .lock-sub { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 1.5rem; }
-        .pin-input { width: 100%; padding: 12px; font-size: 1.5rem; letter-spacing: 12px; text-align: center; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #fff; margin-bottom: 1rem; outline: none; transition: 0.3s; }
-        .pin-input:focus { border-color: var(--accent-purple); box-shadow: 0 0 15px rgba(138, 43, 226, 0.5); }
-        .lock-btn { width: 100%; padding: 12px; border: none; border-radius: 12px; background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); color: white; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .shake { animation: shake 0.4s ease-in-out; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
-
-        /* هيكل التطبيق */
-        .app-container { display: flex; width: 100vw; height: 100vh; position: relative; overflow: hidden; }
-
-        /* الشريط الجانبي */
-        .sidebar { width: 280px; background: var(--bg-surface); backdrop-filter: blur(15px); border-left: 1px solid var(--border-glow); display: flex; flex-direction: column; padding: 1rem; z-index: 10; transition: transform 0.3s ease; flex-shrink: 0; height: 100%; }
-        .new-chat-btn { background: linear-gradient(90deg, rgba(138, 43, 226, 0.3), rgba(0, 210, 255, 0.3)); border: 1px solid var(--border-glow); color: var(--text-main); padding: 12px; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1rem; transition: 0.3s; flex-shrink: 0; }
-        .new-chat-btn:hover { background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); }
-        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .history-item { padding: 10px 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid transparent; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; flex-shrink: 0; }
-        .history-item:hover, .history-item.active { background: rgba(138, 43, 226, 0.2); border-color: rgba(138, 43, 226, 0.4); }
-        .history-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
-        .del-chat-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; opacity: 0.6; }
-        .del-chat-btn:hover { color: var(--danger); opacity: 1; }
-
-        /* المساحة الرئيسية */
-        .main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: rgba(10, 9, 21, 0.4); position: relative; }
-        header { height: 65px; padding: 0 1.2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 13, 33, 0.6); backdrop-filter: blur(10px); flex-shrink: 0; }
-        .header-title-container { display: flex; align-items: center; gap: 10px; }
-        .toggle-sidebar-btn { display: none; background: none; border: none; color: var(--text-main); font-size: 1.4rem; cursor: pointer; }
-        .chat-title { font-size: 1.1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-        .header-actions { display: flex; gap: 8px; }
-        .icon-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main); padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.85rem; }
-        .icon-btn:hover { background: rgba(138, 43, 226, 0.3); }
-
-        /* المحادثة */
-        .chat-box { flex: 1; padding: 1.2rem; padding-bottom: 120px; /* مساحة عشان صندوق الكتابة */ overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; width: 100%; }
-        .message { max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.6; position: relative; font-size: 0.95rem; user-select: text; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .message.user { align-self: flex-start; background: var(--user-msg-bg); border: 1px solid rgba(138, 43, 226, 0.4); border-bottom-right-radius: 4px; color: #fff; }
-        .message.ai { align-self: flex-end; background: var(--ai-msg-bg); border: 1px solid rgba(0, 210, 255, 0.2); border-bottom-left-radius: 4px; }
-        .message.error { background: rgba(255, 71, 87, 0.15); border: 1px solid var(--danger); color: #ff6b81; align-self: center; max-width: 90%; }
-
-        .msg-actions { position: absolute; top: -12px; left: 10px; background: rgba(15, 13, 33, 0.9); border: 1px solid var(--border-glow); border-radius: 8px; display: none; gap: 4px; padding: 2px 6px; }
-        .message.user:hover .msg-actions { display: flex; }
-        .action-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 0.8rem; padding: 2px 4px; }
-        .action-btn:hover { color: #fff; }
-
-        /* 🌟 صندوق الكتابة والميكروفون في النص 🌟 */
-        .input-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding: 1rem 1.5rem 1.5rem 1.5rem;
-            background: linear-gradient(to top, rgba(10, 9, 21, 0.95) 40%, transparent);
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            z-index: 5;
-            pointer-events: none;
-        }
-        .input-area {
-            display: flex; gap: 10px; align-items: center;
-            width: 100%; max-width: 750px;
-            background: rgba(20, 18, 40, 0.95);
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: 1px solid var(--border-glow);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 15px rgba(138, 43, 226, 0.15);
-            pointer-events: auto;
-            backdrop-filter: blur(10px);
-        }
-        .input-box-wrapper { flex: 1; position: relative; display: flex; align-items: center; }
-        textarea { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px 16px; color: #fff; resize: none; height: 48px; outline: none; font-size: 0.95rem; transition: 0.3s; user-select: text; display: block; }
-        textarea:focus { border-color: var(--accent-purple); background: rgba(0, 0, 0, 0.5); }
-
-        .send-btn, .mic-btn, .stop-speech-btn { width: 48px; height: 48px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); color: white; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; flex-shrink: 0; }
-        .mic-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); }
-        .mic-btn.listening { background: var(--danger); animation: pulse 1.5s infinite; }
-        .stop-speech-btn { background: rgba(255, 71, 87, 0.2); border: 1px solid var(--danger); color: var(--danger); display: none; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
-        .send-btn:hover, .mic-btn:hover { opacity: 0.9; transform: scale(1.03); }
-
-        /* النوافذ المنبثقة */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal { background: var(--bg-card); border: 1px solid var(--border-glow); border-radius: 20px; padding: 1.8rem; width: 90%; max-width: 500px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s ease; }
-        .modal-overlay.active .modal { transform: translateY(0); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
-        .modal-title { font-size: 1.2rem; font-weight: 700; color: var(--accent-blue); }
-        .close-modal-btn { background: none; border: none; color: var(--text-sub); font-size: 1.4rem; cursor: pointer; }
-        .modal-body label { display: block; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 6px; }
-        .modal-input, .modal-textarea { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 14px; color: #fff; margin-bottom: 1.2rem; outline: none; font-size: 0.95rem; user-select: text; }
-        .modal-textarea { height: 120px; resize: vertical; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
-        .save-btn { background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); border: none; color: white; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
-
-        @media (max-width: 768px) {
-            .sidebar { position: absolute; right: 0; top: 0; bottom: 0; transform: translateX(100%); box-shadow: -5px 0 25px rgba(0, 0, 0, 0.8); z-index: 50; }
-            .sidebar.open { transform: translateX(0); }
-            .toggle-sidebar-btn { display: block; }
-            .message { max-width: 90%; }
-            .icon-btn span { display: none; }
-            .input-area { max-width: 95%; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مساعد الذكاء الاصطناعي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; user-select: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0915; color: #f0f2f8; }
+#lock-screen { position: fixed; inset: 0; background: rgba(10,9,21,0.98); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+#lock-screen.hidden { display: none; }
+.lock-box { background: rgba(27,24,56,0.85); border: 1px solid #8a2be2; padding: 2rem; border-radius: 20px; text-align: center; width: 90%; max-width: 350px; }
+.lock-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #00d2ff; }
+.pin-input { width: 100%; padding: 12px; font-size: 1.5rem; letter-spacing: 10px; text-align: center; background: #000; border: 1px solid #333; border-radius: 10px; color: #fff; margin-bottom: 1rem; outline: none; }
+.lock-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; background: linear-gradient(90deg, #8a2be2, #00d2ff); color: white; font-size: 1.1rem; cursor: pointer; font-weight: bold; }
+.app-container { display: flex; width: 100vw; height: 100vh; }
+.sidebar { width: 260px; background: rgba(18,16,38,0.85); border-left: 1px solid #8a2be2; display: flex; flex-direction: column; padding: 1rem; }
+.new-chat-btn { background: rgba(138,43,226,0.3); border: 1px solid #8a2be2; color: white; padding: 10px; border-radius: 10px; cursor: pointer; margin-bottom: 1rem; font-weight: bold; }
+.history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+.history-item { padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); cursor: pointer; display: flex; justify-content: space-between; font-size: 0.9rem; }
+.history-item.active { background: rgba(138,43,226,0.3); border: 1px solid #8a2be2; }
+.main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; position: relative; }
+header { height: 60px; padding: 0 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(15,13,33,0.6); }
+.chat-box { flex: 1; padding: 1rem; padding-bottom: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+.message { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; user-select: text; }
+.message.user { align-self: flex-start; background: linear-gradient(135deg, #8a2be2, #4c1d95); color: #fff; }
+.message.ai { align-self: flex-end; background: rgba(20,24,45,0.9); border: 1px solid rgba(0,210,255,0.2); }
+.message.error { align-self: center; background: rgba(255,71,87,0.2); color: #ff4757; border: 1px solid #ff4757; font-size: 0.85rem; }
+.input-container { width: 100%; display: flex; justify-content: center; padding: 1rem; background: linear-gradient(to top, rgba(10,9,21,0.95), transparent); position: absolute; bottom: 0; left: 0; z-index: 5; pointer-events: none; }
+.input-area { display: flex; gap: 8px; align-items: center; width: 100%; max-width: 700px; background: rgba(20,18,40,0.95); padding: 10px; border-radius: 16px; border: 1px solid #8a2be2; pointer-events: auto; }
+textarea { flex: 1; background: rgba(0,0,0,0.4); border: none; border-radius: 10px; padding: 10px; color: #fff; resize: none; height: 45px; outline: none; font-size: 0.95rem; }
+.send-btn, .mic-btn { width: 45px; height: 45px; border-radius: 10px; border: none; background: linear-gradient(135deg, #8a2be2, #00d2ff); color: white; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+.mic-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+.mic-btn.listening { background: #ff4757; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,71,87,0.7); } 70% { box-shadow: 0 0 0 10px rgba(255,71,87,0); } }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: rgba(27,24,56,0.95); padding: 1.5rem; border-radius: 16px; width: 90%; max-width: 400px; border: 1px solid #8a2be2; }
+.modal-input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; color: #fff; margin-bottom: 1rem; outline: none; }
+.save-btn { background: linear-gradient(90deg, #8a2be2, #00d2ff); border: none; color: white; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
+@media (max-width: 768px) { .sidebar { display: none; } .chat-box { padding-bottom: 120px; } }
+</style>
 </head>
 <body>
 
-    <!-- شاشة القفل -->
-    <div id="lock-screen">
-        <div class="lock-box" id="lock-box">
-            <div class="lock-title">نظام الأمان الحصري</div>
-            <div class="lock-sub">يرجى إدخال رمز PIN للدخول للمنصة</div>
-            <input type="password" id="pin-input" class="pin-input" maxlength="5" placeholder="•••••" autofocus>
-            <button class="lock-btn" id="unlock-btn">تأكيد الدخول</button>
-        </div>
+<div id="lock-screen">
+    <div class="lock-box">
+        <div class="lock-title">نظام الأمان</div>
+        <input type="password" id="pin-input" class="pin-input" maxlength="5" placeholder="•••••" autofocus>
+        <button class="lock-btn" id="unlock-btn">دخول</button>
     </div>
+</div>
 
-    <!-- التطبيق -->
-    <div class="app-container">
-        <aside class="sidebar" id="sidebar">
-            <button class="new-chat-btn" id="new-chat-btn"><span>+</span> محادثة جديدة</button>
-            <div class="history-list" id="history-list"></div>
-        </aside>
-
-        <main class="main-content">
-            <header>
-                <div class="header-title-container">
-                    <button class="toggle-sidebar-btn" id="toggle-sidebar">☰</button>
-                    <div class="chat-title" id="current-chat-title">محادثة جديدة</div>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn" id="open-rules-btn">📜 <span>القواعد</span></button>
-                    <button class="icon-btn" id="open-settings-btn">⚙️ <span>الإعدادات</span></button>
-                </div>
-            </header>
-
-            <div class="chat-box" id="chat-box"></div>
-
-            <div class="input-container">
-                <div class="input-area">
-                    <button class="stop-speech-btn" id="stop-speech-btn" title="إيقاف القراءة">⏹️</button>
-                    <button class="mic-btn" id="mic-btn" title="التحدث صوتياً">🎤</button>
-                    <div class="input-box-wrapper">
-                        <textarea id="user-input" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
-                    </div>
-                    <button class="send-btn" id="send-btn" title="إرسال">➤</button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- إعدادات -->
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">⚙️ إعدادات الذكاء الاصطناعي</div>
-                <button class="close-modal-btn" data-close="settings-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <label for="api-key-input">مفتاح API الخاص بـ Google Gemini:</label>
-                <input type="password" id="api-key-input" class="modal-input" placeholder="AIzaSy...">
-                <label for="model-select">نموذج الذكاء الاصطناعي (Model):</label>
-                <input type="text" id="model-select" class="modal-input" value="gemini-2.0-flash" readonly style="background: rgba(0,0,0,0.2); color: #a0a5c0;">
-            </div>
-            <div class="modal-footer">
-                <button class="save-btn" id="save-settings-btn">حفظ الإعدادات</button>
+<div class="app-container" id="app" style="display: none;">
+    <aside class="sidebar">
+        <button class="new-chat-btn" id="new-chat-btn">+ محادثة جديدة</button>
+        <div class="history-list" id="history-list"></div>
+    </aside>
+    <main class="main-content">
+        <header>
+            <div class="chat-title" id="current-chat-title">محادثة جديدة</div>
+            <div><button class="new-chat-btn" id="open-settings-btn" style="margin:0; padding:5px 10px;">⚙️</button></div>
+        </header>
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-container">
+            <div class="input-area">
+                <button class="mic-btn" id="mic-btn">🎤</button>
+                <textarea id="user-input" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
+                <button class="send-btn" id="send-btn">➤</button>
             </div>
         </div>
+    </main>
+</div>
+
+<div class="modal-overlay" id="settings-modal">
+    <div class="modal">
+        <h3 style="margin-bottom:1rem; color:#00d2ff;">⚙️ الإعدادات</h3>
+        <input type="password" id="api-key-input" class="modal-input" placeholder="مفتاح Gemini API (AIzaSy...)">
+        <button class="save-btn" id="save-settings-btn">حفظ وإغلاق</button>
     </div>
+</div>
 
-    <!-- قواعد -->
-    <div class="modal-overlay" id="rules-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">📜 قواعد وسيناريو المحادثة</div>
-                <button class="close-modal-btn" data-close="rules-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <label for="system-rules-input">اكتب القواعد أو شخصية الذكاء الاصطناعي لهذه المحادثة:</label>
-                <textarea id="system-rules-input" class="modal-textarea" placeholder="مثال: أنت محقق جنائي ذكي في القاهرة، تتحدث بلهجة مصرية عامية..."></textarea>
-            </div>
-            <div class="modal-footer">
-                <button class="save-btn" id="save-rules-btn">حفظ القواعد</button>
-            </div>
-        </div>
-    </div>
+<script>
+const PIN_CODE = "77777";
+let apiKey = localStorage.getItem('gemini_api_key') || '';
+let modelName = 'gemini-2.0-flash';
+let chats = JSON.parse(localStorage.getItem('app_chats')) || [];
+let currentChatId = null;
+let recognition = null;
 
-    <script>
-        const PIN_CODE = "77777";
-        const EGYPTIAN_BASE_PROMPT = "تنبيه هام ورئيسي: يجب أن تتحدث وتجيب على جميع الرسائل والسيناريوهات والقصص دائماً باللهجة المصرية العامية المبسطة والطبيعية تماماً بدون أي استخدام للغة العربية الفصحى.";
+document.getElementById('unlock-btn').onclick = () => {
+    if(document.getElementById('pin-input').value === PIN_CODE) {
+        document.getElementById('lock-screen').classList.add('hidden');
+        document.getElementById('app').style.display = 'flex';
+        if(!apiKey) document.getElementById('settings-modal').classList.add('active');
+        if(chats.length === 0) { createNewChat(); } else { loadChat(chats[0].id); renderHistory(); }
+    } else { alert('رقم سري خاطئ!'); }
+};
 
-        let chats = JSON.parse(localStorage.getItem('app_chats')) || [];
-        let currentChatId = localStorage.getItem('app_current_chat_id') || null;
-        let apiKey = localStorage.getItem('gemini_api_key') || '';
-        let modelName = 'gemini-2.0-flash'; 
+document.getElementById('save-settings-btn').onclick = () => {
+    apiKey = document.getElementById('api-key-input').value.trim();
+    localStorage.setItem('gemini_api_key', apiKey);
+    document.getElementById('settings-modal').classList.remove('active');
+};
+
+document.getElementById('open-settings-btn').onclick = () => {
+    document.getElementById('api-key-input').value = apiKey;
+    document.getElementById('settings-modal').classList.add('active');
+};
+
+function createNewChat() {
+    const newChat = { id: 'chat_' + Date.now(), title: 'محادثة جديدة', messages: [] };
+    chats.unshift(newChat);
+    currentChatId = newChat.id;
+    saveToStorage();
+    renderHistory();
+    loadChat(currentChatId);
+}
+
+function loadChat(id) {
+    currentChatId = id;
+    const chat = chats.find(c => c.id === id);
+    document.getElementById('current-chat-title').textContent = chat.title;
+    document.getElementById('chat-box').innerHTML = '';
+    chat.messages.forEach(msg => appendMsg(msg.role, msg.content));
+    renderHistory();
+}
+
+function appendMsg(role, text) {
+    const box = document.getElementById('chat-box');
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+    div.textContent = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+function renderHistory() {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+    chats.forEach(c => {
+        const div = document.createElement('div');
+        div.className = `history-item ${c.id === currentChatId ? 'active' : ''}`;
+        div.innerHTML = `<span>${c.title}</span>`;
+        div.onclick = () => loadChat(c.id);
+        list.appendChild(div);
+    });
+}
+
+function saveToStorage() { localStorage.setItem('app_chats', JSON.stringify(chats)); }
+
+document.getElementById('new-chat-btn').onclick = createNewChat;
+
+document.getElementById('send-btn').onclick = async () => {
+    const input = document.getElementById('user-input');
+    const text = input.value.trim();
+    if(!text || !apiKey) return;
+    
+    const chat = chats.find(c => c.id === currentChatId);
+    if(chat.messages.length === 0) {
+        chat.title = text.substring(0, 20);
+        document.getElementById('current-chat-title').textContent = chat.title;
+        renderHistory();
+    }
+    
+    chat.messages.push({ role: 'user', content: text });
+    appendMsg('user', text);
+    input.value = '';
+    saveToStorage();
+
+    appendMsg('ai', 'جاري التفكير...');
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: chat.messages.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })) })
+        });
+        const data = await res.json();
+        document.getElementById('chat-box').lastChild.remove();
+        if(data.error) throw new Error(data.error.message);
         
-        let recognition = null;
-        let isListening = false;
-        let currentUtterance = null;
-
-        const lockScreen = document.getElementById('lock-screen');
-        const lockBox = document.getElementById('lock-box');
-        const pinInput = document.getElementById('pin-input');
-        const unlockBtn = document.getElementById('unlock-btn');
-
-        const sidebar = document.getElementById('sidebar');
-        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
-        const newChatBtn = document.getElementById('new-chat-btn');
-        const historyList = document.getElementById('history-list');
-
-        const currentChatTitle = document.getElementById('current-chat-title');
-        const chatBox = document.getElementById('chat-box');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const micBtn = document.getElementById('mic-btn');
-        const stopSpeechBtn = document.getElementById('stop-speech-btn');
-
-        const settingsModal = document.getElementById('settings-modal');
-        const rulesModal = document.getElementById('rules-modal');
-        const openSettingsBtn = document.getElementById('open-settings-btn');
-        const openRulesBtn = document.getElementById('open-rules-btn');
-        const saveSettingsBtn = document.getElementById('save-settings-btn');
-        const saveRulesBtn = document.getElementById('save-rules-btn');
-        const apiKeyInput = document.getElementById('api-key-input');
-        const systemRulesInput = document.getElementById('system-rules-input');
-
-        unlockBtn.addEventListener('click', verifyPin);
-        pinInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyPin(); });
-
-        function verifyPin() {
-            if (pinInput.value === PIN_CODE) {
-                lockScreen.classList.add('hidden');
-                initApp();
-            } else {
-                lockBox.classList.add('shake');
-                pinInput.value = '';
-                setTimeout(() => lockBox.classList.remove('shake'), 400);
-            }
-        }
-
-        function initApp() {
-            apiKeyInput.value = apiKey;
-            
-            if (chats.length === 0) {
-                createNewChat();
-            } else {
-                if (!currentChatId || !chats.find(c => c.id === currentChatId)) {
-                    currentChatId = chats[0].id;
-                }
-                renderHistory();
-                loadCurrentChat();
-            }
-
-            setupSpeechRecognition();
-
-            if (!apiKey) {
-                settingsModal.classList.add('active');
-            }
-        }
-
-        function createNewChat() {
-            const newChat = { id: 'chat_' + Date.now(), title: 'محادثة جديدة', systemRules: '', messages: [] };
-            chats.unshift(newChat);
-            currentChatId = newChat.id;
-            saveChatsToStorage();
-            renderHistory();
-            loadCurrentChat();
-        }
-
-        function getCurrentChat() { return chats.find(c => c.id === currentChatId); }
-
-        function saveChatsToStorage() {
-            localStorage.setItem('app_chats', JSON.stringify(chats));
-            localStorage.setItem('app_current_chat_id', currentChatId);
-        }
-
-        function renderHistory() {
-            historyList.innerHTML = '';
-            chats.forEach(chat => {
-                const item = document.createElement('div');
-                item.className = `history-item ${chat.id === currentChatId ? 'active' : ''}`;
-                item.onclick = () => {
-                    currentChatId = chat.id;
-                    saveChatsToStorage();
-                    renderHistory();
-                    loadCurrentChat();
-                    if(window.innerWidth <= 768) sidebar.classList.remove('open');
-                };
-
-                const title = document.createElement('span');
-                title.className = 'history-title';
-                title.textContent = chat.title;
-
-                const delBtn = document.createElement('button');
-                delBtn.className = 'del-chat-btn';
-                delBtn.innerHTML = '🗑️';
-                delBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if(confirm('هل أنت متأكد من حذف هذه المحادثة؟')) deleteChat(chat.id);
-                };
-
-                item.appendChild(title);
-                item.appendChild(delBtn);
-                historyList.appendChild(item);
-            });
-        }
-
-        function deleteChat(id) {
-            chats = chats.filter(c => c.id !== id);
-            if (chats.length === 0) {
-                createNewChat();
-            } else {
-                if (currentChatId === id) { currentChatId = chats[0].id; }
-                saveChatsToStorage();
-                renderHistory();
-                loadCurrentChat();
-            }
-        }
-
-        function loadCurrentChat() {
-            const chat = getCurrentChat();
-            if (!chat) return;
-
-            currentChatTitle.textContent = chat.title;
-            systemRulesInput.value = chat.systemRules || '';
-            chatBox.innerHTML = '';
-
-            chat.messages.forEach((msg, index) => {
-                appendMessageToUI(msg.role === 'user' ? 'user' : 'ai', msg.content, index);
-            });
-
-            scrollToBottom();
-        }
-
-        function appendMessageToUI(role, text, index) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${role === 'user' ? 'user' : 'ai'}`;
-            msgDiv.textContent = text;
-
-            if (role === 'user') {
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'msg-actions';
-                
-                const editBtn = document.createElement('button');
-                editBtn.className = 'action-btn';
-                editBtn.innerHTML = '✏️ تعديل';
-                editBtn.onclick = () => editMessage(index);
-
-                const delBtn = document.createElement('button');
-                delBtn.className = 'action-btn';
-                delBtn.innerHTML = '🗑️ حذف';
-                delBtn.onclick = () => deleteMessage(index);
-
-                actionsDiv.appendChild(editBtn);
-                actionsDiv.appendChild(delBtn);
-                msgDiv.appendChild(actionsDiv);
-            }
-
-            chatBox.appendChild(msgDiv);
-            scrollToBottom();
-        }
-
-        function displayErrorUI(errorText) {
-            const errDiv = document.createElement('div');
-            errDiv.className = 'message error';
-            errDiv.textContent = `❌ خطأ: ${errorText}`;
-            chatBox.appendChild(errDiv);
-            scrollToBottom();
-        }
-
-        function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
-
-        function deleteMessage(index) {
-            if(!confirm('هل تريد حذف هذه الرسالة؟')) return;
-            const chat = getCurrentChat();
-            chat.messages.splice(index, 1);
-            saveChatsToStorage();
-            loadCurrentChat();
-        }
-
-        function editMessage(index) {
-            const chat = getCurrentChat();
-            const oldText = chat.messages[index].content;
-            const newText = prompt("قم بتعديل نص الرسالة:", oldText);
-            
-            if (newText !== null && newText.trim() !== "") {
-                chat.messages = chat.messages.slice(0, index);
-                saveChatsToStorage();
-                loadCurrentChat();
-                userInput.value = newText;
-                sendMessage();
-            }
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-        });
-
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            if (!apiKey) {
-                alert("يرجى إضافة مفتاح Gemini API من شاشة الإعدادات ⚙️ أولاً.");
-                settingsModal.classList.add('active');
-                return;
-            }
-
-            stopSpeech();
-            const chat = getCurrentChat();
-
-            if (chat.messages.length === 0) {
-                chat.title = text.length > 20 ? text.substring(0, 20) + '...' : text;
-                currentChatTitle.textContent = chat.title;
-                renderHistory();
-            }
-
-            chat.messages.push({ role: 'user', content: text });
-            appendMessageToUI('user', text, chat.messages.length - 1);
-            userInput.value = '';
-            saveChatsToStorage();
-
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'message ai';
-            loadingDiv.textContent = 'جاري التفكير والكتابة... ⏳';
-            chatBox.appendChild(loadingDiv);
-            scrollToBottom();
-
-            try {
-                const responseText = await callGeminiAPI(chat);
-                chatBox.removeChild(loadingDiv);
-
-                chat.messages.push({ role: 'model', content: responseText });
-                saveChatsToStorage(); 
-                
-                appendMessageToUI('ai', responseText, chat.messages.length - 1);
-                speakText(responseText);
-            } catch (err) {
-                chatBox.removeChild(loadingDiv);
-                displayErrorUI(err.message || 'حدث خطأ في الاتصال بالخادم.');
-            }
-        }
-
-        async function callGeminiAPI(chat) {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
-            let systemInstructionText = EGYPTIAN_BASE_PROMPT;
-            if (chat.systemRules && chat.systemRules.trim() !== '') {
-                systemInstructionText += "\n" + chat.systemRules;
-            }
-
-            const contents = chat.messages.map(msg => ({
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.content }]
-            }));
-
-            const payload = {
-                contents: contents,
-                systemInstruction: { parts: [{ text: systemInstructionText }] }
-            };
-
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                const serverErrMsg = data.error?.message || response.statusText || 'فشل طلب API';
-                throw new Error(serverErrMsg);
-            }
-
-            if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                return data.candidates[0].content.parts[0].text;
-            } else {
-                throw new Error('لم يتم استلام رد صحيح من نموذج الذكاء الاصطناعي.');
-            }
-        }
-
-        function setupSpeechRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { micBtn.style.display = 'none'; return; }
-
-            recognition = new SpeechRecognition();
-            recognition.lang = 'ar-EG';
-            recognition.continuous = false;
-            recognition.interimResults = false;
-
-            recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); };
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                userInput.value += (userInput.value ? ' ' : '') + transcript;
-            };
-            recognition.onerror = () => { stopListening(); };
-            recognition.onend = () => { stopListening(); };
-        }
-
-        micBtn.addEventListener('click', () => {
-            if (!recognition) return;
-            if (isListening) { recognition.stop(); } else { recognition.start(); }
-        });
-
-        function stopListening() {
-            isListening = false;
-            micBtn.classList.remove('listening');
-        }
-
-        function speakText(text) {
-            if (!('speechSynthesis' in window)) return;
-            stopSpeech();
-
-            currentUtterance = new SpeechSynthesisUtterance(text);
-            currentUtterance.lang = 'ar-EG';
-            currentUtterance.rate = 1.0;
-
-            currentUtterance.onstart = () => { stopSpeechBtn.style.display = 'flex'; };
-            currentUtterance.onend = () => { stopSpeechBtn.style.display = 'none'; };
-            currentUtterance.onerror = () => { stopSpeechBtn.style.display = 'none'; };
-
-            window.speechSynthesis.speak(currentUtterance);
-        }
-
-        function stopSpeech() {
-            if ('speechSynthesis' in window && window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-            }
-            stopSpeechBtn.style.display = 'none';
-        }
-
-        stopSpeechBtn.addEventListener('click', stopSpeech);
-
-        openSettingsBtn.addEventListener('click', () => settingsModal.classList.add('active'));
-        openRulesBtn.addEventListener('click', () => rulesModal.classList.add('active'));
-
-        document.querySelectorAll('[data-close]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.getElementById(btn.dataset.close).classList.remove('active');
-            });
-        });
-
-        saveSettingsBtn.addEventListener('click', () => {
-            apiKey = apiKeyInput.value.trim();
-            localStorage.setItem('gemini_api_key', apiKey);
-            settingsModal.classList.remove('active');
-            alert('تم حفظ الإعدادات بنجاح.');
-        });
-
-        saveRulesBtn.addEventListener('click', () => {
-            const chat = getCurrentChat();
-            if (chat) {
-                chat.systemRules = systemRulesInput.value.trim();
-                                saveChatsToStorage();
-            }
-            rulesModal.classList.remove('active');
-            alert('تم حفظ القواعد والسيناريو بنجاح.');
-        });
-
-        newChatBtn.addEventListener('click', createNewChat);
-
-        toggleSidebarBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
-    </script>
+        const reply = data.candidates[0].content.parts[0].text;
+        chat.messages.push({ role: 'model', content: reply });
+        appendMsg('ai', reply);
+        saveToStorage();
+        speak(reply);
+    } catch(e) {
+        document.getElementById('chat-box').lastChild.remove();
+        appendMsg('error', 'خطأ: ' + e.message);
+    }
+};
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if(SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'ar-EG';
+    recognition.onstart = () => document.getElementById('mic-btn').classList.add('listening');
+    recognition.onresult = (e) => { document.getElementById('user-input').value += e.results[0][0].transcript; };
+    recognition.onend = () => document.getElementById('mic-btn').classList.remove('listening');
+}
+document.getElementById('mic-btn').onclick = () => {
+    if(!recognition) return alert('المتصفح لا يدعم الصوت');
+    if(document.getElementById('mic-btn').classList.contains('listening')) recognition.stop();
+    else recognition.start();
+};
+
+function speak(text) {
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ar-EG';
+    window.speechSynthesis.speak(u);
+}
+</script>
 </body>
 </html>
