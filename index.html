@@ -1,361 +1,636 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مساعد الذكاء الاصطناعي - النسخة المطورة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-base: #0f172a;
-            --bg-surface: #1e293b;
-            --bg-card: #334155;
-            --accent-color: #0ea5e9;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --user-msg: #0284c7;
-            --ai-msg: #1e293b;
-            --danger: #ef4444;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-
-        html, body {
-            width: 100%; height: 100%;
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #lock-screen {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98);
-            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        #lock-screen.hidden { display: none; }
-        .lock-box {
-            background: var(--bg-surface); border: 2px solid var(--accent-color);
-            padding: 2.5rem; border-radius: 20px; text-align: center; width: 90%; max-width: 400px;
-            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.2);
-        }
-        .pin-input {
-            width: 100%; padding: 12px; font-size: 1.5rem; letter-spacing: 12px; text-align: center;
-            background: #0f172a; border: 1px solid var(--text-sub); border-radius: 10px; color: #fff; margin-bottom: 1rem; outline: none;
-        }
-        .lock-btn {
-            width: 100%; padding: 12px; border: none; border-radius: 10px;
-            background: var(--accent-color); color: white; font-size: 1.1rem; font-weight: 700; cursor: pointer;
-        }
-
-        .app-container { display: flex; width: 100%; height: 100%; overflow: hidden; position: relative; }
-
-        .sidebar {
-            width: 280px; background: var(--bg-surface); border-left: 1px solid #334155;
-            display: flex; flex-direction: column; padding: 1rem; height: 100%; flex-shrink: 0; z-index: 10;
-        }
-        .new-chat-btn {
-            background: var(--accent-color); border: none; color: white;
-            padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 1rem; font-weight: 700;
-        }
-        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .history-item {
-            padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); cursor: pointer;
-            font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-sub);
-        }
-        .history-item.active { background: var(--accent-color); color: #fff; }
-
-        .main-content {
-            flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; background: #0f172a; overflow: hidden;
-        }
-
-        header {
-            height: 65px; padding: 0 1.5rem; border-bottom: 1px solid #334155;
-            display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); flex-shrink: 0;
-        }
-        .chat-title-wrapper { display: flex; flex-direction: column; }
-        .chat-title { font-size: 1rem; font-weight: 700; color: #fff; }
-        .version-tag { font-size: 0.75rem; color: #38bdf8; font-weight: 600; }
-        
-        .header-actions { display: flex; gap: 10px; }
-        .icon-btn { background: #334155; border: none; color: #fff; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
-
-        .input-area {
-            width: 100%;
-            padding: 12px 1.5rem; background: var(--bg-surface);
-            border-bottom: 1px solid #334155; display: flex; gap: 10px; align-items: center; flex-shrink: 0; z-index: 20;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .input-box-wrapper { flex: 1; display: flex; align-items: center; }
-        textarea {
-            width: 100%; background: #0f172a; border: 1px solid #475569;
-            border-radius: 10px; padding: 10px 14px; color: #fff; resize: none; height: 45px; outline: none; font-size: 0.95rem;
-        }
-        .send-btn, .mic-btn {
-            width: 45px; height: 45px; border-radius: 10px; border: none;
-            background: var(--accent-color); color: white; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; flex-shrink: 0;
-        }
-        .mic-btn { background: #334155; }
-
-        .chat-box {
-            flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth;
-        }
-        .message {
-            max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.6; font-size: 0.95rem; word-break: break-word; position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
-        }
-        .message.user { align-self: flex-start; background: var(--user-msg); color: #fff; }
-        .message.ai { align-self: flex-end; background: var(--ai-msg); border: 1px solid #475569; color: #f8fafc; }
-        .message.error-msg { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); color: #fca5a5; align-self: center; max-width: 90%; }
-        
-        .delete-msg-btn {
-            background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.9rem; padding: 0 4px;
-        }
-        .delete-msg-btn:hover { color: var(--danger); }
-
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal { background: var(--bg-surface); padding: 1.8rem; border-radius: 16px; width: 90%; max-width: 450px; border: 1px solid #475569; }
-        .modal-input {
-            width: 100%; background: #0f172a; border: 1px solid #475569;
-            border-radius: 8px; padding: 10px; color: #fff; margin-bottom: 1rem; outline: none;
-        }
-        textarea.modal-input { resize: vertical; height: 80px; }
-        .save-btn {
-            width: 100%; background: var(--accent-color);
-            border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 700;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f172a">
+<title>مساعد الذكاء الاصطناعي — v6.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1220;--surface:#172338;--card:#22324b;--line:#30435f;--accent:#0ea5e9;--text:#f1f5f9;--muted:#9aabc1;--danger:#ef4444;--user:#075985}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{font-family:Cairo,system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button,input,textarea{font:inherit}button{cursor:pointer}
+.app{height:100dvh;display:flex;overflow:hidden}
+.sidebar{width:280px;flex:none;background:var(--surface);border-left:1px solid var(--line);display:flex;flex-direction:column;padding:14px;z-index:5}
+.brand{font-weight:800;font-size:18px;padding:8px 5px 16px}.brand small{display:block;color:var(--muted);font-size:12px;font-weight:500}
+.primary,.secondary,.icon{border:0;border-radius:10px;color:white;padding:10px 13px;background:var(--accent);font-weight:700}
+.primary:hover{filter:brightness(1.08)}.secondary{background:var(--card)}.icon{padding:0;width:38px;height:38px;background:var(--card);font-size:17px}
+.history{overflow:auto;display:flex;flex-direction:column;gap:7px;margin-top:12px;flex:1}
+.history-item{display:flex;align-items:center;gap:6px;padding:9px;border-radius:9px;background:#ffffff08;color:var(--muted)}
+.history-item.active{background:#0ea5e933;color:white}
+.history-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;border:0;background:none;color:inherit;cursor:pointer}
+.delete-chat{border:0;background:none;color:inherit;padding:4px}
+.sidebar-foot{color:var(--muted);font-size:11px;padding:10px 3px 0}
+.main{min-width:0;flex:1;display:flex;flex-direction:column}
+header{height:66px;flex:none;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px;gap:10px}
+.head-left,.head-actions{display:flex;align-items:center;gap:9px}
+.title{font-weight:700}.subtitle{font-size:11px;color:#38bdf8}
+#menuBtn{display:none}
+.chat{flex:1;overflow:auto;padding:22px max(18px,calc((100% - 900px)/2));display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+.welcome{text-align:center;margin:auto;color:var(--muted);max-width:500px}
+.welcome h2{color:var(--text);font-size:24px}
+.message{max-width:min(82%,760px);padding:12px 14px;border-radius:14px;line-height:1.8;overflow-wrap:anywhere;position:relative}
+.message.user{align-self:flex-start;background:var(--user);color:white;border-bottom-right-radius:4px}
+.message.ai{align-self:flex-end;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.message.error{align-self:center;background:#7f1d1d55;border:1px solid var(--danger);max-width:95%}
+.message-content{white-space:pre-wrap}
+.message-content p{margin:0 0 9px}.message-content p:last-child{margin-bottom:0}
+.message-content pre{direction:ltr;text-align:left;white-space:pre;overflow:auto;background:#080e19;padding:12px;border-radius:8px}
+.message-content code{font-family:ui-monospace,Consolas,monospace;background:#0004;padding:2px 5px;border-radius:4px;direction:ltr}
+.message-content pre code{background:none;padding:0}
+.message-tools{display:flex;gap:6px;margin-top:8px}
+.tool-btn{background:#ffffff10;color:var(--muted);border:0;border-radius:6px;padding:4px 8px;font-size:12px}
+.typing{align-self:flex-end;background:var(--surface);border:1px solid var(--line);padding:13px 18px;border-radius:12px;color:var(--muted)}
+.composer{flex:none;background:var(--surface);border-top:1px solid var(--line);padding:12px max(14px,calc((100% - 940px)/2));display:flex;align-items:flex-end;gap:9px}
+.composer textarea{flex:1;min-width:0;max-height:150px;min-height:46px;resize:none;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);padding:10px 13px;outline:none;line-height:1.6}
+.composer textarea:focus,.field:focus{border-color:var(--accent)}
+.send{width:46px;height:46px}.mic.recording{background:var(--danger)}
+.overlay{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.overlay.show{display:flex}
+.modal{width:min(100%,480px);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;max-height:90dvh;overflow:auto}
+.modal h3{margin:0 0 12px;color:#7dd3fc}
+.field{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;color:white;padding:11px;margin:7px 0 13px;outline:none}
+.hint{font-size:12px;color:var(--muted);line-height:1.7}
+.modal-actions{display:flex;gap:8px}.modal-actions button{flex:1}
+.status{font-size:11px;color:var(--muted);text-align:center;padding:5px}
+@media(max-width:760px){
+.sidebar{position:fixed;right:0;top:0;bottom:0;height:100dvh;transform:translateX(105%);transition:transform .2s;box-shadow:-8px 0 25px #0008}
+.sidebar.open{transform:translateX(0)}
+#menuBtn{display:inline-grid;place-items:center}
+.chat{padding:16px 12px}
+.message{max-width:94%}
+header{padding:0 12px}.composer{padding:10px}
+.brand{padding-top:14px}
+}
+</style>
 </head>
 <body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+<div class="brand">مساعد الذكاء الاصطناعي <small>الإصدار 6.0</small></div>
+<button class="primary" id="newChat">＋ محادثة جديدة</button>
+<div class="history" id="history"></div>
+<div class="sidebar-foot">تُحفظ المحادثات محليًا على هذا المتصفح.</div>
+</aside>
 
-    <div id="lock-screen">
-        <div class="lock-box">
-            <h2 style="color:#38bdf8; margin-bottom:0.5rem;">نظام الأمان</h2>
-            <p style="color:var(--text-sub); margin-bottom:1.5rem;">أدخل رمز PIN (77777)</p>
-            <input type="password" id="pin-input" class="pin-input" maxlength="5" placeholder="•••••" autofocus>
-            <button class="lock-btn" id="unlock-btn">دخول</button>
-        </div>
-    </div>
+<main class="main">
+<header>
+<div class="head-left">
+<button class="icon" id="menuBtn" aria-label="فتح القائمة">☰</button>
+<div>
+<div class="title" id="chatTitle">محادثة جديدة</div>
+<div class="subtitle">Gemini • v6.0</div>
+</div>
+</div>
+<div class="head-actions">
+<button class="icon" id="exportBtn" title="تصدير المحادثة">⇩</button>
+<button class="icon" id="rulesBtn" title="تعليمات المساعد">📌</button>
+<button class="icon" id="settingsBtn" title="الإعدادات">⚙</button>
+</div>
+</header>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <button class="new-chat-btn" id="new-chat-btn">+ محادثة جديدة</button>
-            <div class="history-list" id="history-list"></div>
-        </aside>
+<section class="chat" id="chat" aria-live="polite"></section>
+<div class="status" id="status">جاهز</div>
 
-        <main class="main-content">
-            <header>
-                <div class="chat-title-wrapper">
-                    <div class="chat-title" id="current-chat-title">محادثة جديدة</div>
-                    <span class="version-tag">إصدار التحديث النهائي: v5.0</span>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn" id="open-rules-btn" title="قواعد النموذج">📌</button>
-                    <button class="icon-btn" id="open-settings-btn" title="الإعدادات">⚙️</button>
-                </div>
-            </header>
+<form class="composer" id="composer">
+<button type="button" class="icon mic" id="micBtn" title="إملاء صوتي">🎤</button>
+<textarea id="prompt" rows="1" placeholder="اكتب رسالتك... (Enter للإرسال، Shift+Enter لسطر جديد)" aria-label="رسالتك"></textarea>
+<button class="primary send" id="sendBtn" type="submit">➤</button>
+</form>
+</main>
+</div>
 
-            <div class="input-area">
-                <button class="mic-btn" id="mic-btn" title="تحدث">🎤</button>
-                <div class="input-box-wrapper">
-                    <textarea id="user-input" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
-                </div>
-                <button class="send-btn" id="send-btn" title="إرسال">➤</button>
-            </div>
+<div class="overlay" id="settingsModal">
+<div class="modal">
+<h3>إعدادات الاتصال</h3>
+<p class="hint">أدخل مفتاح Gemini API. في هذا الإصدار المستقل يُحفظ المفتاح في تخزين المتصفح، لذلك استخدمه على جهاز موثوق فقط.</p>
+<label class="hint" for="apiKey">مفتاح API</label>
+<input class="field" id="apiKey" type="password" autocomplete="off" placeholder="ألصق مفتاح API هنا">
+<label class="hint" for="model">اسم الموديل</label>
+<input class="field" id="model" value="gemini-3.8-flash" spellcheck="false">
+<p class="hint">أنشئ المفتاح من <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.</p>
+<div class="modal-actions">
+<button class="primary" id="saveSettings">حفظ</button>
+<button class="secondary closeModal">إغلاق</button>
+</div>
+</div>
+</div>
 
-            <div class="chat-box" id="chat-box"></div>
-        </main>
-    </div>
+<div class="overlay" id="rulesModal">
+<div class="modal">
+<h3>تعليمات المساعد</h3>
+<p class="hint">تُرسل هذه التعليمات مع كل طلب إلى النموذج.</p>
+<textarea class="field" id="rules" rows="7"></textarea>
+<div class="modal-actions">
+<button class="primary" id="saveRules">حفظ التعليمات</button>
+<button class="secondary closeModal">إغلاق</button>
+</div>
+</div>
+</div>
 
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal">
-            <h3 style="margin-bottom: 1rem; color:#38bdf8;">إعدادات المفتاح (API Key)</h3>
-            <input type="password" id="api-key-input" class="modal-input" placeholder="ألصق المفتاح هنا...">
-            <button class="save-btn" id="save-settings-btn">حفظ الإعدادات</button>
-        </div>
-    </div>
+<script>
+'use strict';
 
-    <div class="modal-overlay" id="rules-modal">
-        <div class="modal">
-            <h3 style="margin-bottom: 1rem; color:#38bdf8;">قواعد ومعلومات النموذج</h3>
-            <textarea id="system-rules-input" class="modal-input" placeholder="اكتب التعليمات هنا..."></textarea>
-            <button class="save-btn" id="save-rules-btn">حفظ القواعد</button>
-        </div>
-    </div>
+const API_BASE='https://generativelanguage.googleapis.com/v1beta/models';
+const REQUEST_TIMEOUT=60000;
+const MAX_CONTEXT_MESSAGES=24;
+const MAX_STORED_CHATS=50;
+const STORAGE_KEY='assistant_v6_chats';
+const DEFAULT_RULES='أنت مساعد ذكي ومفيد. أجب باللغة العربية وباللهجة المصرية عندما يناسب السياق، وكن واضحًا ودقيقًا.';
 
-    <script>
-        const PIN_CODE = "77777";
-        let apiKey = localStorage.getItem('gemini_api_key') || '';
-        let systemRules = localStorage.getItem('gemini_system_rules') || 'أنت مساعد ذكي ومحرك قصص، ورد دائماً باللهجة المصرية العامية.';
-        let modelName = 'gemini-2.5-flash'; // تم التحديث للموديل المدعوم رسمياً
-        let chats = JSON.parse(localStorage.getItem('app_chats')) || [];
-        let currentChatId = null;
+const $=id=>document.getElementById(id);
 
-        document.getElementById('unlock-btn').onclick = () => {
-            if(document.getElementById('pin-input').value === PIN_CODE) {
-                document.getElementById('lock-screen').classList.add('hidden');
-                if(!apiKey) document.getElementById('settings-modal').classList.add('active');
-                if(chats.length === 0) {
-                    const newId = 'chat_' + Date.now();
-                    chats.push({id: newId, title: 'محادثة جديدة', messages: []});
-                    currentChatId = newId;
-                } else {
-                    currentChatId = chats[0].id;
-                }
-                renderHistory();
-                loadChat();
-            } else {
-                alert('رمز PIN خطأ، الرمز هو 77777');
-            }
-        };
+const state={
+apiKey:localStorage.getItem('assistant_v6_api_key')||'',
+model:localStorage.getItem('assistant_v6_model')||'gemini-3.8-flash',
+rules:localStorage.getItem('assistant_v6_rules')||DEFAULT_RULES,
+chats:loadStoredChats(),
+currentId:null,
+sending:false,
+recognition:null,
+recording:false,
+activeRequest:null
+};
 
-        document.getElementById('open-settings-btn').onclick = () => {
-            document.getElementById('api-key-input').value = apiKey;
-            document.getElementById('settings-modal').classList.add('active');
-        };
+function uid(){
+return crypto.randomUUID?crypto.randomUUID():'id_'+Date.now()+'_'+Math.random().toString(16).slice(2);
+}
 
-        document.getElementById('save-settings-btn').onclick = () => {
-            apiKey = document.getElementById('api-key-input').value.trim();
-            localStorage.setItem('gemini_api_key', apiKey);
-            document.getElementById('settings-modal').classList.remove('active');
-            alert('تم حفظ المفتاح بنجاح!');
-        };
+function loadStoredChats(){
+try{
+const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+if(!Array.isArray(data))return [];
+return data.filter(c=>c&&typeof c.id==='string'&&Array.isArray(c.messages))
+.map(c=>({
+id:c.id,
+title:String(c.title||'محادثة جديدة').slice(0,100),
+messages:c.messages.filter(m=>m&&['user','model','error'].includes(m.role)&&typeof m.content==='string')
+.map(m=>({id:String(m.id||uid()),role:m.role,content:m.content.slice(0,50000)}))
+}));
+}catch{return [];}
+}
 
-        document.getElementById('open-rules-btn').onclick = () => {
-            document.getElementById('system-rules-input').value = systemRules;
-            document.getElementById('rules-modal').classList.add('active');
-        };
+function persist(){
+try{
+state.chats=state.chats.slice(0,MAX_STORED_CHATS);
+localStorage.setItem(STORAGE_KEY,JSON.stringify(state.chats));
+$('status').textContent='تم الحفظ';
+}catch(e){
+$('status').textContent='تعذر الحفظ: مساحة التخزين ممتلئة';
+console.error(e);
+}
+}
 
-        document.getElementById('save-rules-btn').onclick = () => {
-            systemRules = document.getElementById('system-rules-input').value.trim();
-            localStorage.setItem('gemini_system_rules', systemRules);
-            document.getElementById('rules-modal').classList.remove('active');
-            alert('تم حفظ القواعد بنجاح!');
-        };
+function currentChat(){
+return state.chats.find(c=>c.id===state.currentId)||null;
+}
 
-        function renderHistory() {
-            const list = document.getElementById('history-list');
-            list.innerHTML = '';
-            chats.forEach(chat => {
-                const div = document.createElement('div');
-                div.className = `history-item ${chat.id === currentChatId ? 'active' : ''}`;
-                div.textContent = chat.title;
-                div.onclick = () => {
-                    currentChatId = chat.id;
-                    loadChat();
-                    renderHistory();
-                };
-                list.appendChild(div);
-            });
-        }
+function newChat(){
+const chat={id:uid(),title:'محادثة جديدة',messages:[]};
+state.chats.unshift(chat);
+state.currentId=chat.id;
+persist();
+renderAll();
+closeSidebar();
+}
 
-        function loadChat() {
-            const chat = chats.find(c => c.id === currentChatId);
-            if(!chat) return;
-            document.getElementById('current-chat-title').textContent = chat.title;
-            const box = document.getElementById('chat-box');
-            box.innerHTML = '';
-            chat.messages.forEach((msg, index) => {
-                box.innerHTML += `
-                    <div class="message ${msg.role}">
-                        <span>${msg.content}</span>
-                        <button class="delete-msg-btn" onclick="window.deleteMessage(${index})" title="حذف الرسالة">🗑️</button>
-                    </div>`;
-            });
-            box.scrollTop = 0;
-        }
+function switchChat(id){
+if(state.chats.some(c=>c.id===id)){
+state.currentId=id;
+renderAll();
+closeSidebar();
+}
+}
 
-        window.deleteMessage = function(index) {
-            const chat = chats.find(c => c.id === currentChatId);
-            if(!chat) return;
-            chat.messages.splice(index, 1);
-            localStorage.setItem('app_chats', JSON.stringify(chats));
-            loadChat();
-        };
+function removeChat(id){
+if(!confirm('هل تريد حذف هذه المحادثة؟'))return;
+state.chats=state.chats.filter(c=>c.id!==id);
+if(state.currentId===id)state.currentId=state.chats[0]?.id||null;
+if(!state.currentId){newChat();return;}
+persist();
+renderAll();
+}
 
-        document.getElementById('new-chat-btn').onclick = () => {
-            const newId = 'chat_' + Date.now();
-            chats.unshift({id: newId, title: 'محادثة جديدة', messages: []});
-            currentChatId = newId;
-            renderHistory();
-            loadChat();
-        };
+function removeMessage(messageId){
+const chat=currentChat();
+if(!chat)return;
+chat.messages=chat.messages.filter(m=>m.id!==messageId);
+persist();
+renderChat();
+}
 
-        document.getElementById('send-btn').onclick = sendMessage;
-        document.getElementById('user-input').onkeypress = (e) => {
-            if(e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        };
+function escapeHTML(s){
+return String(s).replace(/[&<>"']/g,c=>({
+'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+}
 
-        async function sendMessage() {
-            const text = document.getElementById('user-input').value.trim();
-            if(!text) return;
-            if(!apiKey) {
-                alert('يرجى إدخال مفتاح API من الإعدادات أولاً.');
-                document.getElementById('settings-modal').classList.add('active');
-                return;
-            }
+function formatText(text){
+const escaped=escapeHTML(text);
+const blocks=[];
+let out=escaped.replace(/```([\w+-]*)\n?([\s\S]*?)```/g,(_,lang,code)=>{
+const token='@@CODE'+blocks.length+'@@';
+blocks.push('<pre><code>'+code.replace(/\n$/,'')+'</code></pre>');
+return token;
+});
+out=out.replace(/`([^`\n]+)`/g,'<code>$1</code>')
+.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+.replace(/\*(.+?)\*/g,'<em>$1</em>')
+.split(/\n{2,}/)
+.map(p=>p.startsWith('@@CODE')?p:'<p>'+p.replace(/\n/g,'<br>')+'</p>')
+.join('');
+blocks.forEach((b,i)=>{out=out.replace('@@CODE'+i+'@@',b);});
+return out;
+}
 
-            const chat = chats.find(c => c.id === currentChatId);
-            if(!chat) return;
+function renderHistory(){
+const list=$('history');
+list.replaceChildren();
 
-            if(chat.messages.length === 0) {
-                chat.title = text.length > 15 ? text.substring(0, 15) + '...' : text;
-                renderHistory();
-            }
+state.chats.forEach(c=>{
+const row=document.createElement('div');
+row.className='history-item'+(c.id===state.currentId?' active':'');
 
-            chat.messages.push({role: 'user', content: text});
-            localStorage.setItem('app_chats', JSON.stringify(chats));
-            loadChat();
-            document.getElementById('user-input').value = '';
-            
-            const box = document.getElementById('chat-box');
-            const loadingId = 'load_' + Date.now();
-            box.innerHTML += `<div class="message ai" id="${loadingId}"><span>جاري التفكير والكتابة...</span></div>`;
-            box.scrollTop = 0;
+const title=document.createElement('button');
+title.className='history-title';
+title.textContent=c.title;
+title.onclick=()=>switchChat(c.id);
 
-            try {
-                const requestBody = {
-                    contents: [
-                        {
-                            parts: [
-                                { text: systemRules + "\n\nسؤال المستخدم: " + text }
-                            ]
-                        }
-                    ]
-                };
+const del=document.createElement('button');
+del.className='delete-chat';
+del.textContent='×';
+del.title='حذف المحادثة';
+del.onclick=()=>removeChat(c.id);
 
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                const data = await res.json();
-                const loadingEl = document.getElementById(loadingId);
-                if(loadingEl) loadingEl.remove();
+row.append(title,del);
+list.append(row);
+});
+}
 
-                if(!res.ok || data.error) {
-                    throw new Error(data.error?.message || `خطأ في الاتصال (كود: ${res.status})`);
-                }
+function renderChat(){
+const chat=currentChat();
+const box=$('chat');
+box.replaceChildren();
+$('chatTitle').textContent=chat?.title||'محادثة جديدة';
 
-                const reply = data.candidates[0].content.parts[0].text;
+if(!chat||!chat.messages.length){
+const welcome=document.createElement('div');
+welcome.className='welcome';
+welcome.innerHTML='<h2>أهلًا بك 👋</h2><p>ابدأ محادثة جديدة واكتب سؤالك بالأسفل.</p>';
+box.append(welcome);
+return;
+}
 
-                chat.messages.push({role: 'ai', content: reply});
-                localStorage.setItem('app_chats', JSON.stringify(chats));
-                loadChat();
-            } catch(e) {
-                const loadingEl = document.getElementById(loadingId);
-                if(loadingEl) loadingEl.remove();
-                
-                box.innerHTML += `<div class="message error-msg"><span>❌ خطأ: ${e.message}</span></div>`;
-                box.scrollTop = 0;
-            }
-        }
-    </script>
+chat.messages.forEach(m=>{
+const item=document.createElement('article');
+item.className='message '+(m.role==='user'?'user':m.role==='error'?'error':'ai');
+
+const content=document.createElement('div');
+content.className='message-content';
+
+if(m.role==='error')content.textContent=m.content;
+else content.innerHTML=formatText(m.content);
+
+item.append(content);
+
+if(m.role!=='error'){
+const tools=document.createElement('div');
+tools.className='message-tools';
+
+const copy=document.createElement('button');
+copy.className='tool-btn';
+copy.textContent='نسخ';
+copy.onclick=async()=>{
+try{
+await navigator.clipboard.writeText(m.content);
+copy.textContent='تم النسخ';
+}catch{
+copy.textContent='تعذر النسخ';
+}
+};
+
+const del=document.createElement('button');
+del.className='tool-btn';
+del.textContent='حذف';
+del.onclick=()=>removeMessage(m.id);
+
+tools.append(copy,del);
+item.append(tools);
+}
+box.append(item);
+});
+
+box.scrollTop=box.scrollHeight;
+}
+
+function renderAll(){
+renderHistory();
+renderChat();
+}
+
+function closeSidebar(){
+$('sidebar').classList.remove('open');
+}
+
+function showModal(id){
+$(id).classList.add('show');
+}
+
+function hideModal(id){
+$(id).classList.remove('show');
+}
+
+async function sendMessage(event){
+event?.preventDefault();
+
+if(state.sending)return;
+
+const text=$('prompt').value.trim();
+if(!text)return;
+
+if(!state.apiKey){
+showModal('settingsModal');
+$('apiKey').focus();
+$('status').textContent='أدخل مفتاح API أولًا';
+return;
+}
+
+if(!state.model.trim()){
+alert('اكتب اسم الموديل.');
+return;
+}
+
+let chat=currentChat();
+if(!chat){
+newChat();
+chat=currentChat();
+}
+
+const targetChatId=chat.id;
+
+if(chat.messages.length===0){
+chat.title=text.length>32?text.slice(0,32)+'…':text;
+}
+
+chat.messages.push({id:uid(),role:'user',content:text});
+persist();
+renderAll();
+
+$('prompt').value='';
+resizePrompt();
+
+state.sending=true;
+$('sendBtn').disabled=true;
+$('status').textContent='جارٍ إرسال الرسالة…';
+
+const typing=document.createElement('div');
+typing.className='typing';
+typing.textContent='يفكر…';
+
+if(state.currentId===targetChatId){
+$('chat').append(typing);
+$('chat').scrollTop=$('chat').scrollHeight;
+}
+
+const controller=new AbortController();
+state.activeRequest=controller;
+const timer=setTimeout(()=>controller.abort(),REQUEST_TIMEOUT);
+
+try{
+const target=state.chats.find(c=>c.id===targetChatId);
+
+const recent=(target?.messages||[])
+.filter(m=>m.role==='user'||m.role==='model')
+.slice(-MAX_CONTEXT_MESSAGES);
+
+while(recent.length&&recent[0].role!=='user')recent.shift();
+while(recent.length&&recent[recent.length-1].role!=='user')recent.pop();
+
+if(!recent.length)throw new Error('تعذر تجهيز سياق المحادثة.');
+
+const body={
+systemInstruction:{parts:[{text:state.rules}]},
+contents:recent.map(m=>({role:m.role,parts:[{text:m.content}]})),
+generationConfig:{temperature:0.7,maxOutputTokens:4096}
+};
+
+const response=await fetch(
+`${API_BASE}/${encodeURIComponent(state.model.trim())}:generateContent?key=${encodeURIComponent(state.apiKey)}`,
+{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(body),
+signal:controller.signal
+}
+);
+
+const data=await response.json().catch(()=>({}));
+
+if(!response.ok||data.error){
+throw new Error(data.error?.message||`خطأ HTTP ${response.status}`);
+}
+
+const candidate=data.candidates?.[0];
+
+if(!candidate){
+throw new Error('لم يصل رد من النموذج. قد تكون الرسالة محجوبة أو لم ينتج النموذج إجابة.');
+}
+
+if(candidate.finishReason==='SAFETY'){
+throw new Error('تم إيقاف الرد بواسطة إعدادات السلامة.');
+}
+
+const reply=(candidate.content?.parts||[])
+.map(p=>p.text||'').join('').trim();
+
+if(!reply)throw new Error('وصل رد فارغ من النموذج.');
+
+const original=state.chats.find(c=>c.id===targetChatId);
+
+if(original){
+original.messages.push({id:uid(),role:'model',content:reply});
+persist();
+}
+
+$('status').textContent='تم استلام الرد';
+
+}catch(err){
+
+const msg=err.name==='AbortError'
+?'انتهت مهلة الاتصال. حاول مرة أخرى.'
+:/API_KEY_INVALID|API key not valid|invalid api key/i.test(err.message)
+?'مفتاح API غير صالح. راجعه من الإعدادات.'
+:/Failed to fetch|NetworkError|Load failed/i.test(err.message)
+?'تعذر الاتصال بالإنترنت أو بالخدمة. تحقق من الاتصال.'
+:err.message;
+
+const original=state.chats.find(c=>c.id===targetChatId);
+
+if(original){
+original.messages.push({id:uid(),role:'error',content:'تعذر الحصول على الرد: '+msg});
+persist();
+}
+
+$('status').textContent='حدث خطأ';
+
+}finally{
+
+clearTimeout(timer);
+state.activeRequest=null;
+state.sending=false;
+$('sendBtn').disabled=false;
+
+if(state.currentId===targetChatId)renderChat();
+}
+}
+
+function resizePrompt(){
+const p=$('prompt');
+p.style.height='auto';
+p.style.height=Math.min(p.scrollHeight,150)+'px';
+}
+
+$('prompt').addEventListener('input',resizePrompt);
+
+$('prompt').addEventListener('keydown',e=>{
+if(e.key==='Enter'&&!e.shiftKey){
+e.preventDefault();
+sendMessage();
+}
+});
+
+$('composer').addEventListener('submit',sendMessage);
+$('newChat').onclick=newChat;
+
+$('menuBtn').onclick=()=>$('sidebar').classList.toggle('open');
+
+$('settingsBtn').onclick=()=>{
+$('apiKey').value=state.apiKey;
+$('model').value=state.model;
+showModal('settingsModal');
+};
+
+$('saveSettings').onclick=()=>{
+const key=$('apiKey').value.trim();
+const model=$('model').value.trim();
+
+if(!key){alert('أدخل مفتاح API.');return;}
+if(!model){alert('أدخل اسم الموديل.');return;}
+
+state.apiKey=key;
+state.model=model;
+
+localStorage.setItem('assistant_v6_api_key',key);
+localStorage.setItem('assistant_v6_model',model);
+
+hideModal('settingsModal');
+$('status').textContent='تم حفظ الإعدادات';
+};
+
+$('rulesBtn').onclick=()=>{
+$('rules').value=state.rules;
+showModal('rulesModal');
+};
+
+$('saveRules').onclick=()=>{
+state.rules=$('rules').value.trim()||DEFAULT_RULES;
+localStorage.setItem('assistant_v6_rules',state.rules);
+hideModal('rulesModal');
+};
+
+document.querySelectorAll('.closeModal').forEach(b=>{
+b.onclick=()=>b.closest('.overlay').classList.remove('show');
+});
+
+document.querySelectorAll('.overlay').forEach(o=>{
+o.addEventListener('click',e=>{
+if(e.target===o)o.classList.remove('show');
+});
+});
+
+$('exportBtn').onclick=()=>{
+const chat=currentChat();
+if(!chat){alert('لا توجد محادثة للتصدير.');return;}
+
+const content=chat.messages.map(m=>
+(m.role==='user'?'أنت':m.role==='model'?'المساعد':'تنبيه')+':\n'+m.content
+).join('\n\n');
+
+const blob=new Blob([chat.title+'\n\n'+content],{type:'text/plain;charset=utf-8'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;
+a.download=(chat.title||'conversation').replace(/[\\/:*?"<>|]/g,'_')+'.txt';
+a.click();
+URL.revokeObjectURL(url);
+};
+
+// التعرف الصوتي اختياري ويعتمد على دعم المتصفح والاتصال.
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+if(SpeechRecognition){
+
+state.recognition=new SpeechRecognition();
+state.recognition.lang='ar-EG';
+state.recognition.continuous=false;
+state.recognition.interimResults=false;
+
+state.recognition.onstart=()=>{
+state.recording=true;
+$('micBtn').classList.add('recording');
+$('status').textContent='استمع الآن…';
+};
+
+state.recognition.onresult=e=>{
+$('prompt').value=($('prompt').value+' '+e.results[0][0].transcript).trim();
+resizePrompt();
+$('prompt').focus();
+};
+
+state.recognition.onerror=e=>{
+$('status').textContent=e.error==='not-allowed'
+?'اسمح للمتصفح باستخدام الميكروفون.'
+:'تعذر التعرف على الصوت: '+e.error;
+};
+
+state.recognition.onend=()=>{
+state.recording=false;
+$('micBtn').classList.remove('recording');
+};
+
+$('micBtn').onclick=()=>{
+try{
+state.recording?state.recognition.stop():state.recognition.start();
+}catch(e){
+$('status').textContent='تعذر تشغيل الميكروفون.';
+}
+};
+
+}else{
+$('micBtn').disabled=true;
+$('micBtn').title='التعرف الصوتي غير مدعوم في هذا المتصفح';
+}
+
+document.addEventListener('keydown',e=>{
+if(e.key==='Escape'){
+document.querySelectorAll('.overlay.show').forEach(hide=>hide.classList.remove('show'));
+closeSidebar();
+}
+});
+
+if(!state.chats.length){
+newChat();
+}else{
+state.currentId=state.chats[0].id;
+renderAll();
+}
+
+if(!state.apiKey){
+$('status').textContent='أضف مفتاح API من الإعدادات للبدء';
+}
+</script>
 </body>
 </html>
