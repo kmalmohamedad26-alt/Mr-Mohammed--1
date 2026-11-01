@@ -64,7 +64,7 @@
 
         /* Sidebar */
         .sidebar { width: 300px; background: var(--bg-surface); backdrop-filter: blur(15px); border-left: 1px solid var(--border-glow); display: flex; flex-direction: column; padding: 1.2rem; z-index: 10; transition: transform 0.3s ease; }
-        .new-chat-btn { background: linear-gradient(90deg, rgba(138, 43, 226, 0.3), rgba(0, 210, 255, 0.3)); border: 1px solid var(--border-glow); color: var(--text-main); padding: 12px; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1.5rem; transition: 0.3s; }
+        .new-chat-btn { background: linear-gradient(90deg, rgba(138, 43, 226, 0.3), rgba(0, 210, 255, 0.3)); border: 1px solid var(--border-glow); color: var(--text-main); padding: 12px; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1.5rem; transition: 0.3s; flex-shrink: 0; }
         .new-chat-btn:hover { background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); box-shadow: 0 0 15px rgba(138, 43, 226, 0.4); }
         .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         .history-item { padding: 10px 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid transparent; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; font-size: 0.9rem; }
@@ -74,8 +74,8 @@
         .del-chat-btn:hover { color: var(--danger); opacity: 1; }
 
         /* Main Area */
-        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; background: rgba(10, 9, 21, 0.3); }
-        header { height: 70px; padding: 0 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 13, 33, 0.5); backdrop-filter: blur(10px); }
+        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; background: rgba(10, 9, 21, 0.3); height: 100vh; overflow: hidden; }
+        header { height: 70px; padding: 0 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 13, 33, 0.5); backdrop-filter: blur(10px); flex-shrink: 0; }
         .header-title-container { display: flex; align-items: center; gap: 12px; }
         .toggle-sidebar-btn { display: none; background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; }
         .chat-title { font-size: 1.2rem; font-weight: 700; }
@@ -96,14 +96,14 @@
         .action-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 0.85rem; padding: 2px 4px; }
         .action-btn:hover { color: #fff; }
 
-        /* Input Area */
-        .input-area { padding: 1.2rem; background: rgba(15, 13, 33, 0.6); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; gap: 10px; align-items: center; }
-        .input-box-wrapper { flex: 1; position: relative; }
-        textarea { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 12px 16px; color: #fff; resize: none; height: 50px; outline: none; font-size: 0.95rem; transition: 0.3s; user-select: text; }
+        /* Input Area - Fixed at Bottom */
+        .input-area { padding: 1.2rem; background: rgba(15, 13, 33, 0.8); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; gap: 10px; align-items: center; flex-shrink: 0; width: 100%; }
+        .input-box-wrapper { flex: 1; position: relative; display: flex; align-items: center; }
+        textarea { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 12px 16px; color: #fff; resize: none; height: 50px; outline: none; font-size: 0.95rem; transition: 0.3s; user-select: text; display: block; }
         textarea:focus { border-color: var(--accent-purple); box-shadow: 0 0 10px rgba(138, 43, 226, 0.3); }
 
         .send-btn, .mic-btn, .stop-speech-btn { width: 50px; height: 50px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); color: white; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; flex-shrink: 0; }
-        .mic-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .mic-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); }
         .mic-btn.listening { background: var(--danger); animation: pulse 1.5s infinite; }
         .stop-speech-btn { background: rgba(255, 71, 87, 0.2); border: 1px solid var(--danger); color: var(--danger); display: none; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: 0 0 0 12px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
@@ -171,11 +171,11 @@
 
             <div class="input-area">
                 <button class="stop-speech-btn" id="stop-speech-btn" title="إيقاف القراءة الصوتية">⏹️</button>
-                <button class="mic-btn" id="mic-btn" title="التحدث صوتياً">🎤</button>
+                <button class="mic-btn" id="mic-btn" title="التحدث صوتياً (صوتي)">🎤</button>
                 <div class="input-box-wrapper">
-                    <textarea id="user-input" placeholder="اكتب رسالتك هنا... (أو استخدم الميكروفون)" rows="1"></textarea>
+                    <textarea id="user-input" placeholder="اكتب رسالتك هنا... (كتابة)" rows="1"></textarea>
                 </div>
-                <button class="send-btn" id="send-btn" title="إرسال">➤</button>
+                <button class="send-btn" id="send-btn" title="إرسال الرسالة">➤</button>
             </div>
         </main>
     </div>
@@ -209,7 +209,7 @@
             </div>
             <div class="modal-body">
                 <label for="system-rules-input">اكتب القواعد أو شخصية الذكاء الاصطناعي لهذه المحادثة:</label>
-                <textarea id="system-rules-input" class="modal-textarea" placeholder="مثال: أنت محقق جنائي ذكي في القاهرة، تتحدث بلهجة مصرية عامية، الوقت ليلاً، وحاول كشف اللغز معي..."></textarea>
+                <textarea id="system-rules-input" class="modal-textarea" placeholder="مثال: أنت محقق جنائي ذكي في القاهرة، تتحدث بلهجة مصرية عامية، الوقت ليلاً..."></textarea>
             </div>
             <div class="modal-footer">
                 <button class="save-btn" id="save-rules-btn">حفظ القواعد</button>
@@ -610,7 +610,7 @@
             stopSpeechBtn.style.display = 'none';
         }
 
-        stopSpeechBtn.addEventListener('click', stopSpeech);
+    stopSpeechBtn.addEventListener('click', stopSpeech);
 
         // --- Modals & UI Controls ---
         openSettingsBtn.addEventListener('click', () => settingsModal.classList.add('active'));
@@ -637,7 +637,7 @@
                 chat.systemRules = systemRulesInput.value.trim();
                 saveChatsToStorage();
             }
-            rulesModal.classList.remove('active');
+        rulesModal.classList.remove('active');
             alert('تم حفظ القواعد والسيناريو بنجاح.');
         });
 
