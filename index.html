@@ -149,7 +149,7 @@
             <header>
                 <div class="chat-title-wrapper">
                     <div class="chat-title" id="current-chat-title">محادثة جديدة</div>
-                    <span class="version-tag">إصدار فحص التحديث: v4.0 (محدث)</span>
+                    <span class="version-tag">إصدار التحديث النهائي: v5.0</span>
                 </div>
                 <div class="header-actions">
                     <button class="icon-btn" id="open-rules-btn" title="قواعد النموذج">📌</button>
@@ -189,7 +189,7 @@
         const PIN_CODE = "77777";
         let apiKey = localStorage.getItem('gemini_api_key') || '';
         let systemRules = localStorage.getItem('gemini_system_rules') || 'أنت مساعد ذكي ومحرك قصص، ورد دائماً باللهجة المصرية العامية.';
-        let modelName = 'gemini-1.5-flash';
+        let modelName = 'gemini-2.5-flash'; // تم التحديث للموديل المدعوم رسمياً
         let chats = JSON.parse(localStorage.getItem('app_chats')) || [];
         let currentChatId = null;
 
