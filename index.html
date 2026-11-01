@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مساعد الذكاء الاصطناعي</title>
+    <title>مساعد الذكاء الاصطناعي - النسخة المطورة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #0a0915;
-            --bg-surface: rgba(18, 16, 38, 0.95);
-            --bg-card: rgba(27, 24, 56, 0.95);
-            --border-glow: rgba(138, 43, 226, 0.4);
-            --accent-purple: #8a2be2;
-            --accent-blue: #00d2ff;
-            --text-main: #f0f2f8;
-            --text-sub: #a0a5c0;
-            --user-msg-bg: linear-gradient(135deg, rgba(138, 43, 226, 0.5), rgba(75, 0, 130, 0.6));
-            --ai-msg-bg: rgba(20, 24, 45, 0.95);
-            --danger: #ff4757;
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-card: #334155;
+            --accent-color: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --user-msg: #0284c7;
+            --ai-msg: #1e293b;
+            --danger: #ef4444;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
@@ -32,100 +30,101 @@
         }
 
         #lock-screen {
-            position: fixed; inset: 0; background: rgba(10, 9, 21, 0.98);
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98);
             z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         #lock-screen.hidden { display: none; }
         .lock-box {
-            background: var(--bg-card); border: 1px solid var(--border-glow);
-            padding: 2.5rem; border-radius: 24px; text-align: center; width: 90%; max-width: 400px;
+            background: var(--bg-surface); border: 2px solid var(--accent-color);
+            padding: 2.5rem; border-radius: 20px; text-align: center; width: 90%; max-width: 400px;
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.2);
         }
         .pin-input {
             width: 100%; padding: 12px; font-size: 1.5rem; letter-spacing: 12px; text-align: center;
-            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; margin-bottom: 1rem; outline: none;
+            background: #0f172a; border: 1px solid var(--text-sub); border-radius: 10px; color: #fff; margin-bottom: 1rem; outline: none;
         }
         .lock-btn {
-            width: 100%; padding: 12px; border: none; border-radius: 12px;
-            background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); color: white; font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            background: var(--accent-color); color: white; font-size: 1.1rem; font-weight: 700; cursor: pointer;
         }
 
         .app-container { display: flex; width: 100%; height: 100%; overflow: hidden; position: relative; }
 
         .sidebar {
-            width: 280px; background: var(--bg-surface); border-left: 1px solid var(--border-glow);
+            width: 280px; background: var(--bg-surface); border-left: 1px solid #334155;
             display: flex; flex-direction: column; padding: 1rem; height: 100%; flex-shrink: 0; z-index: 10;
         }
         .new-chat-btn {
-            background: rgba(138,43,226,0.3); border: 1px solid var(--border-glow); color: white;
-            padding: 12px; border-radius: 14px; cursor: pointer; margin-bottom: 1rem; font-weight: 600;
+            background: var(--accent-color); border: none; color: white;
+            padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 1rem; font-weight: 700;
         }
         .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
         .history-item {
-            padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.03); cursor: pointer;
+            padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); cursor: pointer;
             font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-sub);
         }
-        .history-item.active { background: rgba(138,43,226,0.3); color: #fff; }
+        .history-item.active { background: var(--accent-color); color: #fff; }
 
         .main-content {
-            flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; background: rgba(10,9,21,0.4); overflow: hidden;
+            flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; background: #0f172a; overflow: hidden;
         }
 
         header {
-            height: 60px; padding: 0 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex; justify-content: space-between; align-items: center; background: rgba(15,13,33,0.9); flex-shrink: 0;
+            height: 65px; padding: 0 1.5rem; border-bottom: 1px solid #334155;
+            display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); flex-shrink: 0;
         }
         .chat-title-wrapper { display: flex; flex-direction: column; }
-        .chat-title { font-size: 1rem; font-weight: 700; }
-        .version-tag { font-size: 0.75rem; color: var(--accent-blue); font-weight: 600; }
+        .chat-title { font-size: 1rem; font-weight: 700; color: #fff; }
+        .version-tag { font-size: 0.75rem; color: #38bdf8; font-weight: 600; }
         
         .header-actions { display: flex; gap: 10px; }
-        .icon-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 1.2rem; }
+        .icon-btn { background: #334155; border: none; color: #fff; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
 
         .input-area {
             width: 100%;
-            padding: 12px 1.5rem; background: rgba(15, 13, 33, 0.95);
-            border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; gap: 10px; align-items: center; flex-shrink: 0; z-index: 20;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            padding: 12px 1.5rem; background: var(--bg-surface);
+            border-bottom: 1px solid #334155; display: flex; gap: 10px; align-items: center; flex-shrink: 0; z-index: 20;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .input-box-wrapper { flex: 1; display: flex; align-items: center; }
         textarea {
-            width: 100%; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px; padding: 10px 14px; color: #fff; resize: none; height: 45px; outline: none; font-size: 0.95rem;
+            width: 100%; background: #0f172a; border: 1px solid #475569;
+            border-radius: 10px; padding: 10px 14px; color: #fff; resize: none; height: 45px; outline: none; font-size: 0.95rem;
         }
         .send-btn, .mic-btn {
-            width: 45px; height: 45px; border-radius: 12px; border: none;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); color: white; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; flex-shrink: 0;
+            width: 45px; height: 45px; border-radius: 10px; border: none;
+            background: var(--accent-color); color: white; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; flex-shrink: 0;
         }
-        .mic-btn { background: rgba(255,255,255,0.1); }
+        .mic-btn { background: #334155; }
 
         .chat-box {
             flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth;
         }
         .message {
-            max-width: 80%; padding: 12px 16px; border-radius: 16px; line-height: 1.6; font-size: 0.95rem; user-select: text; word-break: break-word; position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+            max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.6; font-size: 0.95rem; word-break: break-word; position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
         }
-        .message.user { align-self: flex-start; background: var(--user-msg-bg); color: #fff; }
-        .message.ai { align-self: flex-end; background: var(--ai-msg-bg); border: 1px solid rgba(0,210,255,0.2); }
-        .message.error-msg { background: rgba(255, 71, 87, 0.2); border: 1px solid var(--danger); color: #ff6b81; align-self: center; max-width: 90%; }
+        .message.user { align-self: flex-start; background: var(--user-msg); color: #fff; }
+        .message.ai { align-self: flex-end; background: var(--ai-msg); border: 1px solid #475569; color: #f8fafc; }
+        .message.error-msg { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); color: #fca5a5; align-self: center; max-width: 90%; }
         
         .delete-msg-btn {
-            background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 0.9rem; padding: 0 4px;
+            background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.9rem; padding: 0 4px;
         }
         .delete-msg-btn:hover { color: var(--danger); }
 
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: none; justify-content: center; align-items: center;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center;
         }
         .modal-overlay.active { display: flex; }
-        .modal { background: var(--bg-card); padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid var(--border-glow); }
+        .modal { background: var(--bg-surface); padding: 1.8rem; border-radius: 16px; width: 90%; max-width: 450px; border: 1px solid #475569; }
         .modal-input {
-            width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px; padding: 10px; color: #fff; margin-bottom: 1rem; outline: none;
+            width: 100%; background: #0f172a; border: 1px solid #475569;
+            border-radius: 8px; padding: 10px; color: #fff; margin-bottom: 1rem; outline: none;
         }
         textarea.modal-input { resize: vertical; height: 80px; }
         .save-btn {
-            width: 100%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
-            border: none; color: white; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: 600;
+            width: 100%; background: var(--accent-color);
+            border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 700;
         }
     </style>
 </head>
@@ -133,7 +132,7 @@
 
     <div id="lock-screen">
         <div class="lock-box">
-            <h2 style="color:#00d2ff; margin-bottom:0.5rem;">نظام الأمان</h2>
+            <h2 style="color:#38bdf8; margin-bottom:0.5rem;">نظام الأمان</h2>
             <p style="color:var(--text-sub); margin-bottom:1.5rem;">أدخل رمز PIN (77777)</p>
             <input type="password" id="pin-input" class="pin-input" maxlength="5" placeholder="•••••" autofocus>
             <button class="lock-btn" id="unlock-btn">دخول</button>
@@ -150,7 +149,7 @@
             <header>
                 <div class="chat-title-wrapper">
                     <div class="chat-title" id="current-chat-title">محادثة جديدة</div>
-                    <span class="version-tag">الإصدار: v3.0 النهائي</span>
+                    <span class="version-tag">إصدار فحص التحديث: v4.0 (محدث)</span>
                 </div>
                 <div class="header-actions">
                     <button class="icon-btn" id="open-rules-btn" title="قواعد النموذج">📌</button>
@@ -172,7 +171,7 @@
 
     <div class="modal-overlay" id="settings-modal">
         <div class="modal">
-            <h3 style="margin-bottom: 1rem; color:var(--accent-blue);">إعدادات المفتاح (API Key)</h3>
+            <h3 style="margin-bottom: 1rem; color:#38bdf8;">إعدادات المفتاح (API Key)</h3>
             <input type="password" id="api-key-input" class="modal-input" placeholder="ألصق المفتاح هنا...">
             <button class="save-btn" id="save-settings-btn">حفظ الإعدادات</button>
         </div>
@@ -180,7 +179,7 @@
 
     <div class="modal-overlay" id="rules-modal">
         <div class="modal">
-            <h3 style="margin-bottom: 1rem; color:var(--accent-blue);">قواعد ومعلومات النموذج</h3>
+            <h3 style="margin-bottom: 1rem; color:#38bdf8;">قواعد ومعلومات النموذج</h3>
             <textarea id="system-rules-input" class="modal-input" placeholder="اكتب التعليمات هنا..."></textarea>
             <button class="save-btn" id="save-rules-btn">حفظ القواعد</button>
         </div>
